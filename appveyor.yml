@@ -1,0 +1,27 @@
+version: "{build}"
+
+skip_tags: false
+
+platform: x64
+configuration: Release
+
+clone_folder: C:\cpp-localiser
+
+install:
+  - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+  -
+  - bash -lc "pacman --needed --noconfirm -Sy pacman-mirrors"
+  - bash -lc "pacman --noconfirm -Sy"
+  - bash -lc "pacman --noconfirm -S mingw-w64-x86_64-gcc mingw-w64-x86_64-libgit2"
+
+build: off
+build_script:
+  - git submodule update --init --recursive
+  - make
+  - make run-tests
+
+notifications:
+  - provider: Email
+    to:
+      - nabijaczleweli@gmail.com
+    on_build_status_changed: true

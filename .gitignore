@@ -1,0 +1,17 @@
+*
+!ext
+!ext/**
+!src
+!src/**
+!test
+!test/**
+!include
+!include/**
+!.git*
+!.clang-format
+!.travis.yml
+!appveyor.yml
+!*Makefile
+!*.sublime-project
+!LICENSE
+!README.md

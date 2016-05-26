@@ -1,0 +1,51 @@
+{
+	"build_systems":
+	[
+		{
+			"working_dir": "$project_path",
+			"cmd": "make -j10 all run-tests",
+			"name": "Build libgit2pp and run tests",
+
+			"target": "ansi_color_build",
+			"syntax": "Packages/ANSIescape/ANSI.tmLanguage"
+		},
+		{
+			"working_dir": "$project_path",
+			"cmd": "make -j10 clean",
+			"name": "Clean libgit2pp"
+		}
+	],
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"name": "Source",
+			"path": "src"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Headers",
+			"path": "include"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Test sources",
+			"path": "test"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*Makefile*",
+				".travis.yml",
+				"appveyor.yml"
+			],
+			"folder_exclude_patterns":
+			[
+				"*"
+			],
+			"follow_symlinks": true,
+			"name": "Build files",
+			"path": "."
+		}
+	]
+}

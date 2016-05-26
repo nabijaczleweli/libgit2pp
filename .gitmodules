@@ -1,0 +1,4 @@
+[submodule "Catch"]
+	path = ext/Catch
+	url = https://github.com/philsquared/Catch.git
+	branch = v1.5.4
