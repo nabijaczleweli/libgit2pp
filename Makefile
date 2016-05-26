@@ -37,21 +37,21 @@ clean :
 	rm -rf $(BUILD)
 
 run-tests : tests
-	@$(BUILD)/test/cpp-localiser-tests$(EXE) --use-colour yes
+	@$(BUILD)/test/git2++-tests$(EXE) --use-colour yes
 
-tests : $(BUILD)/test/cpp-localiser-tests$(EXE)
-dll : $(BUILD)/$(PREDLL)cpp-localiser$(DLL)
-stlib : $(BUILD)/libcpp-localiser$(ARCH)
+tests : $(BUILD)/test/git2++-tests$(EXE)
+dll : $(BUILD)/$(PREDLL)git2++$(DLL)
+stlib : $(BUILD)/libgit2++$(ARCH)
 
 
-$(BUILD)/$(PREDLL)cpp-localiser$(DLL) : $(OBJECTS)
-	$(CXX) $(CXXAR) -shared $(PIC) -o$@ $^
+$(BUILD)/$(PREDLL)git2++$(DLL) : $(OBJECTS)
+	$(CXX) $(CXXAR) -shared $(PIC) -o$@ $^ -lgit2
 
-$(BUILD)/libcpp-localiser$(ARCH) : $(OBJECTS)
-	ar crs $@ $^
+$(BUILD)/libgit2++$(ARCH) : $(OBJECTS)
+	$(AR) crs $@ $^
 
-$(BUILD)/test/cpp-localiser-tests$(EXE) : $(TEST_OBJECTS) $(OBJECTS)
-	$(CXX) $(CXXAR) $(PIC) -o$@ $^
+$(BUILD)/test/git2++-tests$(EXE) : $(TEST_OBJECTS) $(OBJECTS)
+	$(CXX) $(CXXAR) $(PIC) -o$@ $^ -lgit2
 
 
 $(BUILD)/obj/%$(OBJ) : src/%.cpp
