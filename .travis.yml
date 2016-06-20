@@ -12,15 +12,15 @@ matrix:
             - libgit2-dev
           sources: &sources
             - r-packages-precise
-            - llvm-toolchain-precise-3.8
             - ubuntu-toolchain-r-test
-    - env: CXX=clang++-3.8 CC=clang-3.8
-      addons:
-        apt:
-          packages:
-            - clang-3.8
-            - libgit2-dev
-          sources: *sources
+#            - llvm-toolchain-precise-3.8
+#    - env: CXX=clang++-3.8 CC=clang-3.8
+#      addons:
+#        apt:
+#          packages:
+#            - clang-3.8
+#            - libgit2-dev
+#          sources: *sources
 
 script:
   - make -j$(nproc)
