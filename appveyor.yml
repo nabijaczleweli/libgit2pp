@@ -12,7 +12,7 @@ install:
   -
   - bash -lc "pacman --needed --noconfirm -Sy pacman-mirrors"
   - bash -lc "pacman --noconfirm -Sy"
-  - bash -lc "pacman --noconfirm -S mingw-w64-x86_64-gcc mingw-w64-x86_64-libgit2"
+  - bash -lc "pacman --noconfirm -S mingw-w64-x86_64-clang mingw-w64-x86_64-libgit2"
 
 build: off
 build_script:
