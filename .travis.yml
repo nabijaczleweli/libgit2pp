@@ -1,5 +1,5 @@
 language: generic
-sudo: false
+sudo: required
 cache: apt
 
 matrix:
@@ -9,9 +9,8 @@ matrix:
         apt:
           packages:
             - g++-5
-            - libgit2-dev
+            - cmake
           sources: &sources
-            - r-packages-precise
             - ubuntu-toolchain-r-test
 #            - llvm-toolchain-precise-3.8
 #    - env: CXX=clang++-3.8 CC=clang-3.8
@@ -22,6 +21,15 @@ matrix:
 #            - libgit2-dev
 #          sources: *sources
 
+install:
+  - pushd /tmp
+  - git clone --depth 1 --branch v0.24.0 https://github.com/libgit2/libgit2.git
+  - mkdir -p libgit2/build
+  - cd libgit2/build
+  - cmake -G"Unix Makefiles" .. -DBUILD_CLAR=OFF
+  - sudo make -j$(nproc) install
+  - popd
+
 script:
   - make -j$(nproc)
-  - make run-tests
+  - LD_LIBRARY_PATH=/usr/local/lib/ make run-tests
