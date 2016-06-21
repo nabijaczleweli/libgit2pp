@@ -32,7 +32,9 @@ void git2pp::repository_deleter::operator()(git_repository * repo) const noexcep
 
 
 git2pp::repository git2pp::repository::init(const char * path, bool bare) {
-	git_repository * result = nullptr;
+	guard grd;
+
+	git_repository * result{};
 	git_repository_init(&result, path, bare);
 	return {result};
 }
@@ -42,7 +44,9 @@ git2pp::repository git2pp::repository::init(const std::string & path, bool bare)
 }
 
 git2pp::repository git2pp::repository::open(const char * path) {
-	git_repository * result = nullptr;
+	guard grd;
+
+	git_repository * result{};
 	git_repository_open(&result, path);
 	return {result};
 }

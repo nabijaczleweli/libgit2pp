@@ -39,11 +39,11 @@ namespace git2pp {
 
 	class repository : public guard {
 	public:
-		repository init(const char * path, bool bare = false);
-		repository init(const std::string & path, bool bare = false);
+		static repository init(const char * path, bool bare = false);
+		static repository init(const std::string & path, bool bare = false);
 
-		repository open(const char * path);
-		repository open(const std::string & path);
+		static repository open(const char * path);
+		static repository open(const std::string & path);
 
 	private:
 		repository(git_repository * repo);
