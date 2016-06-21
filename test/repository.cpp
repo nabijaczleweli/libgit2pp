@@ -21,35 +21,36 @@
 // DEALINGS IN THE SOFTWARE.
 
 
-#define CATCH_CONFIG_MAIN
+#include "libgit2++/repository.hpp"
 #include "catch.hpp"
 #include "util.hpp"
+#include <fstream>
 #include <string>
 
 
-#ifdef _WIN32
-#include <shellapi.h>
+void check_for_head(std::string head);
 
 
-void remove_directory(const char * path) {
-	std::string out_path = path;
-	out_path.push_back('\0');
+TEST_CASE("init() - non-bare", "[repository]") {
+	const auto dir = git2pp::discover_repository(".") + "../out/test/repos/repository/init()/1";
+	remove_directory(dir.c_str());
 
-	SHFILEOPSTRUCT op{};
-	op.wFunc  = FO_DELETE;
-	op.pFrom  = out_path.c_str();
-	op.fFlags = FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR | FOF_NOERRORUI | FOF_SILENT;
-	SHFileOperationA(&op);
+	const auto repo = git2pp::repository::init(dir);
+	check_for_head(dir + "/.git/HEAD");
 }
-#else
-#include <cstdlib>
 
+TEST_CASE("init() - bare", "[repository]") {
+	const auto dir = git2pp::discover_repository(".") + "../out/test/repos/repository/init()/2.git";
+	remove_directory(dir.c_str());
 
-using namespace std::literals;
-
-
-// Processes are cheap enough on Linux
-void remove_directory(const char * path) {
-	system("rm -rf "s + path);
+	const auto repo = git2pp::repository::init(dir, true);
+	check_for_head(dir + "/HEAD");
 }
-#endif
+
+
+void check_for_head(std::string head_path) {
+	INFO(head_path);
+	std::ifstream head(head_path);
+	CHECK(head);
+	CHECK(head.is_open());
+}

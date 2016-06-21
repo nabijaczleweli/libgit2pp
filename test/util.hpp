@@ -21,35 +21,7 @@
 // DEALINGS IN THE SOFTWARE.
 
 
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
-#include "util.hpp"
-#include <string>
+#pragma once
 
 
-#ifdef _WIN32
-#include <shellapi.h>
-
-
-void remove_directory(const char * path) {
-	std::string out_path = path;
-	out_path.push_back('\0');
-
-	SHFILEOPSTRUCT op{};
-	op.wFunc  = FO_DELETE;
-	op.pFrom  = out_path.c_str();
-	op.fFlags = FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR | FOF_NOERRORUI | FOF_SILENT;
-	SHFileOperationA(&op);
-}
-#else
-#include <cstdlib>
-
-
-using namespace std::literals;
-
-
-// Processes are cheap enough on Linux
-void remove_directory(const char * path) {
-	system("rm -rf "s + path);
-}
-#endif
+void remove_directory(const char * path);
