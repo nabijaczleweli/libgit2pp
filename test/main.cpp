@@ -50,6 +50,6 @@ using namespace std::literals;
 
 // Processes are cheap enough on Linux
 void remove_directory(const char * path) {
-	system("rm -rf "s + path);
+	static_cast<void>(system(("rm -rf '"s + path + '\'').c_str()));
 }
 #endif
