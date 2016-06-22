@@ -24,10 +24,15 @@
 #pragma once
 
 
+#include "configuration.hpp"
 #include "guard.hpp"
+#include "object.hpp"
+#include "reference.hpp"
+#include <experimental/optional>
 #include <git2/repository.h>
 #include <memory>
 #include <string>
+#include <utility>
 
 
 namespace git2pp {
@@ -39,14 +44,43 @@ namespace git2pp {
 
 	class repository : public guard {
 	public:
-		static repository init(const char * path, bool bare = false);
-		static repository init(const std::string & path, bool bare = false);
+		static repository init(const char * path, bool bare = false) noexcept;
+		static repository init(const std::string & path, bool bare = false) noexcept;
 
-		static repository open(const char * path);
-		static repository open(const std::string & path);
+		static repository open(const char * path) noexcept;
+		static repository open(const std::string & path) noexcept;
+
+
+		reference head() noexcept;
+		bool head_detached() noexcept;
+		bool head_unborn() noexcept;
+
+		bool empty() noexcept;
+		bool bare() noexcept;
+		std::string path();
+
+		std::experimental::optional<std::string> working_directory();
+		void working_directory(const std::string & path, bool update_gitlink) noexcept;
+		void working_directory(const char * path, bool update_gitlink) noexcept;
+
+		configuration config() noexcept;
+		configuration config_snapshot() noexcept;
+
+		std::string message();
+		void remove_message() noexcept;
+
+		void cleanup_state() noexcept;
+
+		template <class F>
+		void iterate_over_fetch_head(F && func);
+		template <class F>
+		void iterate_over_merge_head(F && func);
+
+		git_oid hash_file(const char * path, object_type type, const char * filters = nullptr) noexcept;
+		git_oid hash_file(const std::string & path, object_type type, std::experimental::optional<std::string> filters = std::experimental::nullopt) noexcept;
 
 	private:
-		repository(git_repository * repo);
+		repository(git_repository * repo) noexcept;
 
 		std::unique_ptr<git_repository, repository_deleter> repo;
 	};
@@ -54,4 +88,17 @@ namespace git2pp {
 
 	std::string discover_repository(const char * start, const std::string & ceiling_dirs = "", bool across_fs = true);
 	std::string discover_repository(const std::string & start, const std::string & ceiling_dirs = "", bool across_fs = true);
+}
+
+
+template <class F>
+void git2pp::repository::iterate_over_fetch_head(F && func) {
+	git_repository_fetchhead_foreach(repo.get(), [](const char * ref_name, const char * remote_url, const git_oid * oid, unsigned int is_merge,
+	                                                void * payload) -> int { return (*static_cast<F *>(payload))(ref_name, remote_url, oid, is_merge); },
+	                                 &func);
+}
+
+template <class F>
+void git2pp::repository::iterate_over_merge_head(F && func) {
+	git_repository_mergehead_foreach(repo.get(), [](const git_oid * oid, void * payload) -> int { return (*static_cast<F *>(payload))(oid); }, &func);
 }
