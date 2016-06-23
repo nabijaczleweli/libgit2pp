@@ -36,6 +36,22 @@
 
 
 namespace git2pp {
+	enum class repository_state {
+		none                    = GIT_REPOSITORY_STATE_NONE,
+		merge                   = GIT_REPOSITORY_STATE_MERGE,
+		revert                  = GIT_REPOSITORY_STATE_REVERT,
+		revert_sequence         = GIT_REPOSITORY_STATE_REVERT_SEQUENCE,
+		cherrypick              = GIT_REPOSITORY_STATE_CHERRYPICK,
+		cherrypick_sequence     = GIT_REPOSITORY_STATE_CHERRYPICK_SEQUENCE,
+		bisect                  = GIT_REPOSITORY_STATE_BISECT,
+		rebase                  = GIT_REPOSITORY_STATE_REBASE,
+		rebase_interactive      = GIT_REPOSITORY_STATE_REBASE_INTERACTIVE,
+		rebase_merge            = GIT_REPOSITORY_STATE_REBASE_MERGE,
+		apply_mailbox           = GIT_REPOSITORY_STATE_APPLY_MAILBOX,
+		apply_mailbox_or_rebase = GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE,
+	};
+
+
 	class repository_deleter {
 	public:
 		void operator()(git_repository * repo) const noexcept;
@@ -44,6 +60,12 @@ namespace git2pp {
 
 	class repository : public guard {
 	public:
+		struct identity_t {
+			std::string name;
+			std::string email;
+		};
+
+
 		static repository init(const char * path, bool bare = false) noexcept;
 		static repository init(const std::string & path, bool bare = false) noexcept;
 
@@ -57,6 +79,7 @@ namespace git2pp {
 
 		bool empty() noexcept;
 		bool bare() noexcept;
+		bool shallow() noexcept;
 		std::string path();
 
 		std::experimental::optional<std::string> working_directory();
@@ -78,6 +101,21 @@ namespace git2pp {
 
 		git_oid hash_file(const char * path, object_type type, const char * filters = nullptr) noexcept;
 		git_oid hash_file(const std::string & path, object_type type, std::experimental::optional<std::string> filters = std::experimental::nullopt) noexcept;
+
+		void set_head(const char * refname) noexcept;
+		void set_head(const std::string & refname) noexcept;
+		void detach_head() noexcept;
+		void detach_head(const git_oid & commitish) noexcept;
+		// TODO: git_repository_set_head_detached_from_annotated
+
+		repository_state state() noexcept;
+
+		std::experimental::optional<std::string> name_space();
+		void name_space(const char * name) noexcept;
+		void name_space(const std::string & name) noexcept;
+
+		identity_t identity() const;
+		void identity(const identity_t & ident) noexcept;
 
 	private:
 		repository(git_repository * repo) noexcept;

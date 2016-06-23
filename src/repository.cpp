@@ -78,6 +78,10 @@ bool git2pp::repository::bare() noexcept {
 	return git_repository_is_bare(repo.get());
 }
 
+bool git2pp::repository::shallow() noexcept {
+	return git_repository_is_shallow(repo.get());
+}
+
 std::string git2pp::repository::path() {
 	return git_repository_path(repo.get());
 }
@@ -134,6 +138,54 @@ git_oid git2pp::repository::hash_file(const char * path, object_type type, const
 
 git_oid git2pp::repository::hash_file(const std::string & path, object_type type, std::experimental::optional<std::string> filters) noexcept {
 	return hash_file(path.c_str(), type, filters ? filters->c_str() : nullptr);
+}
+
+void git2pp::repository::set_head(const char * path) noexcept {
+	git_repository_set_head(repo.get(), path);
+}
+
+void git2pp::repository::set_head(const std::string & refname) noexcept {
+	return set_head(refname.c_str());
+}
+
+void git2pp::repository::detach_head() noexcept {
+	git_repository_detach_head(repo.get());
+}
+
+void git2pp::repository::detach_head(const git_oid & commitish) noexcept {
+	git_repository_set_head_detached(repo.get(), &commitish);
+}
+
+git2pp::repository_state git2pp::repository::state() noexcept {
+	return static_cast<repository_state>(git_repository_state(repo.get()));
+}
+
+std::experimental::optional<std::string> git2pp::repository::name_space() {
+	if(const auto name = git_repository_get_namespace(repo.get()))
+		return {name};
+	else
+		return std::experimental::nullopt;
+}
+
+void git2pp::repository::name_space(const char * name) noexcept {
+	git_repository_set_namespace(repo.get(), name);
+}
+
+void git2pp::repository::name_space(const std::string & name) noexcept {
+	name_space(name.c_str());
+}
+
+git2pp::repository::identity_t git2pp::repository::identity() const {
+	const char * name;
+	const char * email;
+
+	git_repository_ident(&name, &email, repo.get());
+
+	return {name, email};
+}
+
+void git2pp::repository::identity(const git2pp::repository::identity_t & ident) noexcept {
+	git_repository_set_ident(repo.get(), ident.name.c_str(), ident.email.c_str());
 }
 
 
