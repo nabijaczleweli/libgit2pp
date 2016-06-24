@@ -117,6 +117,27 @@ namespace git2pp {
 		identity_t identity() const;
 		void identity(const identity_t & ident) noexcept;
 
+		reference lookup(const char * full_name) noexcept;
+		reference lookup(const std::string & full_name) noexcept;
+		reference lookup_dwim(const char * short_name) noexcept;
+		reference lookup_dwim(const std::string & short_name) noexcept;
+		git_oid lookup_id(const char * name) noexcept;
+		git_oid lookup_id(const std::string & name) noexcept;
+
+		reference make_symbolic_reference(const char * name, const char * target, const char * log_message, bool force = false) noexcept;
+		reference make_symbolic_reference(const std::string & name, const std::string & target, const std::string & log_message, bool force = false) noexcept;
+		std::experimental::optional<reference> make_symbolic_reference(const char * name, const char * target, const char * current_value,
+		                                                                const char * log_message, bool force = false) noexcept;
+		std::experimental::optional<reference> make_symbolic_reference(const std::string & name, const std::string & target, const std::string & current_value,
+		                                                                const std::string & log_message, bool force = false) noexcept;
+
+		reference make_reference(const char * name, const git_oid & id, const char * log_message, bool force = false);
+		reference make_reference(const std::string & name, const git_oid & id, const std::string & log_message, bool force = false);
+		std::experimental::optional<reference> make_reference(const char * name, const git_oid & id, const git_oid & current_id, const char * log_message,
+		                                                      bool force = false);
+		std::experimental::optional<reference> make_reference(const std::string & name, const git_oid & id, const git_oid & current_id,
+		                                                      const std::string & log_message, bool force = false);
+
 	private:
 		repository(git_repository * repo) noexcept;
 

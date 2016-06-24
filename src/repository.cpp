@@ -188,6 +188,88 @@ void git2pp::repository::identity(const git2pp::repository::identity_t & ident) 
 	git_repository_set_ident(repo.get(), ident.name.c_str(), ident.email.c_str());
 }
 
+git2pp::reference git2pp::repository::lookup(const char * full_name) noexcept {
+	git_reference * result;
+	git_reference_lookup(&result, repo.get(), full_name);
+	return {result};
+}
+
+git2pp::reference git2pp::repository::lookup(const std::string & full_name) noexcept {
+	return lookup(full_name.c_str());
+}
+
+git2pp::reference git2pp::repository::lookup_dwim(const char * short_name) noexcept {
+	git_reference * result;
+	git_reference_dwim(&result, repo.get(), short_name);
+	return {result};
+}
+
+git2pp::reference git2pp::repository::lookup_dwim(const std::string & short_name) noexcept {
+	return lookup_dwim(short_name.c_str());
+}
+
+git_oid git2pp::repository::lookup_id(const char * name) noexcept {
+	git_oid result;
+	git_reference_name_to_id(&result, repo.get(), name);
+	return result;
+}
+
+git_oid git2pp::repository::lookup_id(const std::string & name) noexcept {
+	return lookup_id(name.c_str());
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::make_symbolic_reference(const char * name, const char * target, const char * current_value,
+                                                                                  const char * log_message, bool force) noexcept {
+	git_reference * result;
+	git_reference_symbolic_create_matching(&result, repo.get(), name, target, force, current_value, log_message);
+	if(result)
+		return {result};
+	else
+		return std::experimental::nullopt;
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::make_symbolic_reference(const std::string & name, const std::string & target,
+                                                                                  const std::string & current_value, const std::string & log_message,
+                                                                                  bool force) noexcept {
+	return make_symbolic_reference(name.c_str(), target.c_str(), current_value.c_str(), log_message.c_str(), force);
+}
+
+git2pp::reference git2pp::repository::make_symbolic_reference(const char * name, const char * target, const char * log_message, bool force) noexcept {
+	git_reference * result;
+	git_reference_symbolic_create(&result, repo.get(), name, target, force, log_message);
+	return result;
+}
+
+git2pp::reference git2pp::repository::make_symbolic_reference(const std::string & name, const std::string & target, const std::string & log_message,
+                                                     bool force) noexcept {
+	return make_symbolic_reference(name.c_str(), target.c_str(), log_message.c_str(), force);
+}
+
+git2pp::reference git2pp::repository::make_reference(const char * name, const git_oid & id, const char * log_message, bool force) {
+	git_reference * result;
+	git_reference_create(&result, repo.get(), name, &id,force,log_message);
+	return result;
+}
+
+git2pp::reference git2pp::repository::make_reference(const std::string & name, const git_oid & id, const std::string & log_message, bool force) {
+	return make_reference(name.c_str(), id, log_message.c_str(), force);
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::make_reference(const char * name, const git_oid & id, const git_oid & current_id,
+                                                                                  const char * log_message, bool force) {
+	git_reference * result;
+	git_reference_create_matching(&result, repo.get(), name, &id, force, &current_id, log_message);
+	if(result)
+		return {result};
+	else
+		return std::experimental::nullopt;
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::make_reference(const std::string & name, const git_oid & id, const git_oid & current_id,
+                                                                                  const std::string & log_message, bool force) {
+	return make_reference(name.c_str(), id, current_id, log_message.c_str(), force);
+}
+
 
 git2pp::repository::repository(git_repository * r) noexcept : repo(r) {}
 
