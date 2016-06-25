@@ -54,6 +54,8 @@ namespace git2pp {
 
 	class repository_deleter {
 	public:
+		bool owning;
+
 		void operator()(git_repository * repo) const noexcept;
 	};
 
@@ -139,7 +141,9 @@ namespace git2pp {
 		                                                      const std::string & log_message, bool force = false);
 
 	private:
-		repository(git_repository * repo) noexcept;
+		friend class reference;
+
+		repository(git_repository * repo, bool owning = true) noexcept;
 
 		std::unique_ptr<git_repository, repository_deleter> repo;
 	};

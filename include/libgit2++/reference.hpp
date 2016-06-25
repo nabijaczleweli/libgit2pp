@@ -25,11 +25,22 @@
 
 
 #include "guard.hpp"
+#include <experimental/optional>
 #include <git2/refs.h>
 #include <memory>
+#include <string>
 
 
 namespace git2pp {
+	class repository;
+
+
+	enum class reference_type {
+		direct   = GIT_REF_OID,
+		symbolic = GIT_REF_SYMBOLIC,
+	};
+
+
 	class reference_deleter {
 	public:
 		void operator()(git_reference * ref) const noexcept;
@@ -37,10 +48,31 @@ namespace git2pp {
 
 
 	class reference : public guard {
-	public:
-	private:
 		friend class repository;
 
+
+	public:
+		std::experimental::optional<git_oid> target(bool peel = false) const noexcept;
+		std::experimental::optional<std::string> target_symbollic() const;
+
+		reference_type type() const noexcept;
+		std::string name() const;
+
+		reference resolve() const noexcept;
+		repository owner() const noexcept;
+
+		void set_target_symbollic(const char * target, const char * log_message) noexcept;
+		void set_target_symbollic(const std::string & target, const std::string & log_message) noexcept;
+		void set_target(const git_oid & id, const char * log_message) noexcept;
+		void set_target(const git_oid & id, const std::string log_message) noexcept;
+
+		reference rename(const char * new_name, const char * log_message, bool force = false) noexcept;
+		reference rename(const std::string & new_name, const std::string & log_message, bool force = false) noexcept;
+
+		// not `delete` because it's a keyword
+		void remove() noexcept;
+
+	private:
 		reference(git_reference * ref) noexcept;
 
 		std::unique_ptr<git_reference, reference_deleter> ref;

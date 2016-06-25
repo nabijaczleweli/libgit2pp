@@ -27,7 +27,8 @@
 
 
 void git2pp::repository_deleter::operator()(git_repository * repo) const noexcept {
-	git_repository_free(repo);
+	if(owning)
+		git_repository_free(repo);
 }
 
 
@@ -219,7 +220,7 @@ git_oid git2pp::repository::lookup_id(const std::string & name) noexcept {
 }
 
 std::experimental::optional<git2pp::reference> git2pp::repository::make_symbolic_reference(const char * name, const char * target, const char * current_value,
-                                                                                  const char * log_message, bool force) noexcept {
+                                                                                           const char * log_message, bool force) noexcept {
 	git_reference * result;
 	git_reference_symbolic_create_matching(&result, repo.get(), name, target, force, current_value, log_message);
 	if(result)
@@ -229,8 +230,8 @@ std::experimental::optional<git2pp::reference> git2pp::repository::make_symbolic
 }
 
 std::experimental::optional<git2pp::reference> git2pp::repository::make_symbolic_reference(const std::string & name, const std::string & target,
-                                                                                  const std::string & current_value, const std::string & log_message,
-                                                                                  bool force) noexcept {
+                                                                                           const std::string & current_value, const std::string & log_message,
+                                                                                           bool force) noexcept {
 	return make_symbolic_reference(name.c_str(), target.c_str(), current_value.c_str(), log_message.c_str(), force);
 }
 
@@ -241,13 +242,13 @@ git2pp::reference git2pp::repository::make_symbolic_reference(const char * name,
 }
 
 git2pp::reference git2pp::repository::make_symbolic_reference(const std::string & name, const std::string & target, const std::string & log_message,
-                                                     bool force) noexcept {
+                                                              bool force) noexcept {
 	return make_symbolic_reference(name.c_str(), target.c_str(), log_message.c_str(), force);
 }
 
 git2pp::reference git2pp::repository::make_reference(const char * name, const git_oid & id, const char * log_message, bool force) {
 	git_reference * result;
-	git_reference_create(&result, repo.get(), name, &id,force,log_message);
+	git_reference_create(&result, repo.get(), name, &id, force, log_message);
 	return result;
 }
 
@@ -271,7 +272,7 @@ std::experimental::optional<git2pp::reference> git2pp::repository::make_referenc
 }
 
 
-git2pp::repository::repository(git_repository * r) noexcept : repo(r) {}
+git2pp::repository::repository(git_repository * r, bool owning) noexcept : repo(r, {owning}) {}
 
 
 std::string git2pp::discover_repository(const std::string & start, const std::string & ceiling_dirs, bool across_fs) {
