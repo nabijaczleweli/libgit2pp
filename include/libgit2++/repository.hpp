@@ -33,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 
 namespace git2pp {
@@ -128,10 +129,10 @@ namespace git2pp {
 
 		reference make_symbolic_reference(const char * name, const char * target, const char * log_message, bool force = false) noexcept;
 		reference make_symbolic_reference(const std::string & name, const std::string & target, const std::string & log_message, bool force = false) noexcept;
-		std::experimental::optional<reference> make_symbolic_reference(const char * name, const char * target, const char * current_value,
-		                                                                const char * log_message, bool force = false) noexcept;
+		std::experimental::optional<reference> make_symbolic_reference(const char * name, const char * target, const char * current_value, const char * log_message,
+		                                                               bool force = false) noexcept;
 		std::experimental::optional<reference> make_symbolic_reference(const std::string & name, const std::string & target, const std::string & current_value,
-		                                                                const std::string & log_message, bool force = false) noexcept;
+		                                                               const std::string & log_message, bool force = false) noexcept;
 
 		reference make_reference(const char * name, const git_oid & id, const char * log_message, bool force = false);
 		reference make_reference(const std::string & name, const git_oid & id, const std::string & log_message, bool force = false);
@@ -139,6 +140,15 @@ namespace git2pp {
 		                                                      bool force = false);
 		std::experimental::optional<reference> make_reference(const std::string & name, const git_oid & id, const git_oid & current_id,
 		                                                      const std::string & log_message, bool force = false);
+
+		void remove_reference(const char * name) noexcept;
+		void remove_reference(const std::string & name) noexcept;
+		std::vector<std::string> reference_names();
+
+		template <class F>
+		void iterate_over_references(F && func);
+		template <class F>
+		void iterate_over_reference_names(F && func);
 
 	private:
 		friend class reference;
@@ -164,4 +174,14 @@ void git2pp::repository::iterate_over_fetch_head(F && func) {
 template <class F>
 void git2pp::repository::iterate_over_merge_head(F && func) {
 	git_repository_mergehead_foreach(repo.get(), [](const git_oid * oid, void * payload) -> int { return (*static_cast<F *>(payload))(oid); }, &func);
+}
+
+template <class F>
+void git2pp::repository::iterate_over_references(F && func) {
+	git_reference_foreach(repo.get(), [](git_reference * reference, void * payload) -> int { return (*static_cast<F *>(payload))(*reference); }, &func);
+}
+
+template <class F>
+void git2pp::repository::iterate_over_reference_names(F && func) {
+	git_reference_foreach_name(repo.get(), [](const char * name, void * payload) -> int { return (*static_cast<F *>(payload))(name); }, &func);
 }

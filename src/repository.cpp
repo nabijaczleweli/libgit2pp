@@ -271,6 +271,21 @@ std::experimental::optional<git2pp::reference> git2pp::repository::make_referenc
 	return make_reference(name.c_str(), id, current_id, log_message.c_str(), force);
 }
 
+void git2pp::repository::remove_reference(const char * name) noexcept {
+	git_reference_remove(repo.get(), name);
+}
+
+void git2pp::repository::remove_reference(const std::string & name) noexcept {
+	remove_reference(name.c_str());
+}
+
+std::vector<std::string> git2pp::repository::reference_names() {
+	git_strarray names;
+	git_reference_list(&names, repo.get());
+
+	return {names.strings, names.strings + names.count};
+}
+
 
 git2pp::repository::repository(git_repository * r, bool owning) noexcept : repo(r, {owning}) {}
 
