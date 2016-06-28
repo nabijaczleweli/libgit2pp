@@ -26,7 +26,8 @@
 
 
 void git2pp::reference_deleter::operator()(git_reference * ref) const noexcept {
-	git_reference_free(ref);
+	if(owning)
+		git_reference_free(ref);
 }
 
 
@@ -103,4 +104,4 @@ void git2pp::reference::remove() noexcept {
 }
 
 
-git2pp::reference::reference(git_reference * r) noexcept : ref(r) {}
+git2pp::reference::reference(git_reference * r, bool owning) noexcept : ref(r, {owning}) {}

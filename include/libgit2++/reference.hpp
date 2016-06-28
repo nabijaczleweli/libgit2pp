@@ -43,6 +43,8 @@ namespace git2pp {
 
 	class reference_deleter {
 	public:
+		bool owning;
+
 		void operator()(git_reference * ref) const noexcept;
 	};
 
@@ -73,7 +75,7 @@ namespace git2pp {
 		void remove() noexcept;
 
 	private:
-		reference(git_reference * ref) noexcept;
+		reference(git_reference * ref, bool owning = true) noexcept;
 
 		std::unique_ptr<git_reference, reference_deleter> ref;
 	};

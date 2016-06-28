@@ -178,7 +178,7 @@ void git2pp::repository::iterate_over_merge_head(F && func) {
 
 template <class F>
 void git2pp::repository::iterate_over_references(F && func) {
-	git_reference_foreach(repo.get(), [](git_reference * reference, void * payload) -> int { return (*static_cast<F *>(payload))(*reference); }, &func);
+	git_reference_foreach(repo.get(), [](git_reference * ref, void * payload) -> int { return (*static_cast<F *>(payload))(reference(ref)); }, &func);
 }
 
 template <class F>
