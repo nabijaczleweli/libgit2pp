@@ -286,6 +286,22 @@ std::vector<std::string> git2pp::repository::reference_names() {
 	return {names.strings, names.strings + names.count};
 }
 
+bool git2pp::repository::reference_has_log(const char * name) noexcept {
+	return git_reference_has_log(repo.get(), name);
+}
+
+bool git2pp::repository::reference_has_log(const std::string & name) noexcept {
+	return reference_has_log(name.c_str());
+}
+
+void git2pp::repository::reference_ensure_log(const char * name) noexcept {
+	git_reference_ensure_log(repo.get(), name);
+}
+
+void git2pp::repository::reference_ensure_log(const std::string & name) noexcept {
+	reference_ensure_log(name.c_str());
+}
+
 
 git2pp::repository::repository(git_repository * r, bool owning) noexcept : repo(r, {owning}) {}
 

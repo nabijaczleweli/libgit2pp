@@ -23,6 +23,12 @@
 
 #include "libgit2++/reference.hpp"
 #include "libgit2++/repository.hpp"
+#include <cstring>
+#include <git2/errors.h>
+#include <vector>
+
+
+static std::string normalize_reference_name(const char * name, std::size_t name_len, git2pp::normalisation_opts flags);
 
 
 void git2pp::reference_deleter::operator()(git_reference * ref) const noexcept {
@@ -57,6 +63,10 @@ git2pp::reference_type git2pp::reference::type() const noexcept {
 
 std::string git2pp::reference::name() const {
 	return git_reference_name(ref.get());
+}
+
+std::string git2pp::reference::shorthand() const {
+	return git_reference_shorthand(ref.get());
 }
 
 git2pp::reference git2pp::reference::resolve() const noexcept {
@@ -103,5 +113,54 @@ void git2pp::reference::remove() noexcept {
 	git_reference_delete(ref.get());
 }
 
+bool git2pp::reference::is_branch() const noexcept {
+	return git_reference_is_branch(ref.get());
+}
+
+bool git2pp::reference::is_remote() const noexcept {
+	return git_reference_is_remote(ref.get());
+}
+
+bool git2pp::reference::is_tag() const noexcept {
+	return git_reference_is_tag(ref.get());
+}
+
+bool git2pp::reference::is_note() const noexcept {
+	return git_reference_is_note(ref.get());
+}
+
+git2pp::object git2pp::reference::peel(object_type type) noexcept {
+	git_object * result;
+	git_reference_peel(&result, ref.get(), static_cast<git_otype>(type));
+	return {result};
+}
+
 
 git2pp::reference::reference(git_reference * r, bool owning) noexcept : ref(r, {owning}) {}
+
+
+std::string git2pp::normalize_reference_name(const char * name, git2pp::normalisation_opts flags) {
+	return ::normalize_reference_name(name, std::strlen(name), flags);
+}
+
+std::string git2pp::normalize_reference_name(const std::string & name, git2pp::normalisation_opts flags) {
+	return ::normalize_reference_name(name.c_str(), name.size(), flags);
+}
+
+std::string normalize_reference_name(const char * name, std::size_t name_len, git2pp::normalisation_opts flags) {
+	std::vector<char> ret;
+	ret.resize(name_len * 1.2);
+
+	while(git_reference_normalize_name(ret.data(), ret.size(), name, static_cast<unsigned int>(flags)) == GIT_EBUFS)
+		ret.resize(ret.size() * 1.2);
+
+	return {ret.begin(), ret.end()};
+}
+
+bool reference_name_valid(const char * name) {
+	return git_reference_is_valid_name(name);
+}
+
+bool reference_name_valid(const std::string & name) {
+	return reference_name_valid(name.c_str());
+}

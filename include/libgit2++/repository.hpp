@@ -149,6 +149,18 @@ namespace git2pp {
 		void iterate_over_references(F && func);
 		template <class F>
 		void iterate_over_reference_names(F && func);
+		template <class F>
+		void iterate_over_reference_names_glob(const char * glob, F && func);
+		template <class F>
+		void iterate_over_reference_names_glob(const std::string & glob, F && func);
+
+		// Enumeration via iterators (git_reference_iterator_new()/git_reference_iterator_glob_new()) impossible because they need to be copy-constructible and
+		// that's impossible because C wrappers :v
+
+		bool reference_has_log(const char * name) noexcept;
+		bool reference_has_log(const std::string & name) noexcept;
+		void reference_ensure_log(const char * name) noexcept;
+		void reference_ensure_log(const std::string & name) noexcept;
 
 	private:
 		friend class reference;
@@ -167,13 +179,13 @@ namespace git2pp {
 template <class F>
 void git2pp::repository::iterate_over_fetch_head(F && func) {
 	git_repository_fetchhead_foreach(repo.get(), [](const char * ref_name, const char * remote_url, const git_oid * oid, unsigned int is_merge,
-	                                                void * payload) -> int { return (*static_cast<F *>(payload))(ref_name, remote_url, oid, is_merge); },
+	                                                void * payload) -> int { return (*static_cast<F *>(payload))(ref_name, remote_url, *oid, is_merge); },
 	                                 &func);
 }
 
 template <class F>
 void git2pp::repository::iterate_over_merge_head(F && func) {
-	git_repository_mergehead_foreach(repo.get(), [](const git_oid * oid, void * payload) -> int { return (*static_cast<F *>(payload))(oid); }, &func);
+	git_repository_mergehead_foreach(repo.get(), [](const git_oid * oid, void * payload) -> int { return (*static_cast<F *>(payload))(*oid); }, &func);
 }
 
 template <class F>
@@ -184,4 +196,14 @@ void git2pp::repository::iterate_over_references(F && func) {
 template <class F>
 void git2pp::repository::iterate_over_reference_names(F && func) {
 	git_reference_foreach_name(repo.get(), [](const char * name, void * payload) -> int { return (*static_cast<F *>(payload))(name); }, &func);
+}
+
+template <class F>
+void git2pp::repository::iterate_over_reference_names_glob(const char * glob, F && func) {
+	git_reference_foreach_glob(repo.get(), glob, [](const char * name, void * payload) -> int { return (*static_cast<F *>(payload))(name); }, &func);
+}
+
+template <class F>
+void git2pp::repository::iterate_over_reference_names_glob(const std::string & glob, F && func) {
+	iterate_over_reference_names_glob(glob.c_str(), std::forward<F>(func));
 }

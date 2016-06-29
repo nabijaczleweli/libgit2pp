@@ -21,43 +21,14 @@
 // DEALINGS IN THE SOFTWARE.
 
 
-#pragma once
+#include "libgit2++/object.hpp"
+#include <git2/object.h>
 
 
-#include "guard.hpp"
-#include <git2/types.h>
-#include <memory>
-
-
-namespace git2pp {
-	enum class object_type {
-		any             = GIT_OBJ_ANY,
-		bad             = GIT_OBJ_BAD,
-		commit          = GIT_OBJ_COMMIT,
-		tree            = GIT_OBJ_TREE,
-		blob            = GIT_OBJ_BLOB,
-		annotated_tag   = GIT_OBJ_TAG,
-		delta_offset    = GIT_OBJ_OFS_DELTA,
-		delta_object_id = GIT_OBJ_REF_DELTA,
-	};
-
-
-	class object_deleter {
-	public:
-		bool owning;
-
-		void operator()(git_object * ref) const noexcept;
-	};
-
-
-	class object : public guard {
-		friend class reference;
-
-
-	public:
-	private:
-		object(git_object * ref, bool owning = true) noexcept;
-
-		std::unique_ptr<git_object, object_deleter> ref;
-	};
+void git2pp::object_deleter::operator()(git_object * ref) const noexcept {
+	if(owning)
+		git_object_free(ref);
 }
+
+
+git2pp::object::object(git_object * r, bool owning) noexcept : ref(r, {owning}) {}

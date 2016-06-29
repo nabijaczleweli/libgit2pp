@@ -25,6 +25,7 @@
 
 
 #include "guard.hpp"
+#include "object.hpp"
 #include <experimental/optional>
 #include <git2/refs.h>
 #include <memory>
@@ -39,6 +40,17 @@ namespace git2pp {
 		direct   = GIT_REF_OID,
 		symbolic = GIT_REF_SYMBOLIC,
 	};
+
+	enum class normalisation_opts {
+		normal          = GIT_REF_FORMAT_NORMAL,
+		allow_one_level = GIT_REF_FORMAT_ALLOW_ONELEVEL,
+
+		refspec_pattern   = GIT_REF_FORMAT_REFSPEC_PATTERN,
+		refspec_shorthand = GIT_REF_FORMAT_REFSPEC_SHORTHAND,
+	};
+
+	constexpr normalisation_opts operator&(normalisation_opts lhs, normalisation_opts rhs);
+	constexpr normalisation_opts operator|(normalisation_opts lhs, normalisation_opts rhs);
 
 
 	class reference_deleter {
@@ -59,6 +71,7 @@ namespace git2pp {
 
 		reference_type type() const noexcept;
 		std::string name() const;
+		std::string shorthand() const;
 
 		reference resolve() const noexcept;
 		repository owner() const noexcept;
@@ -74,9 +87,32 @@ namespace git2pp {
 		// not `delete` because it's a keyword
 		void remove() noexcept;
 
+		bool is_branch() const noexcept;
+		bool is_remote() const noexcept;
+		bool is_tag() const noexcept;
+		bool is_note() const noexcept;
+
+		object peel(object_type type) noexcept;
+
 	private:
 		reference(git_reference * ref, bool owning = true) noexcept;
 
 		std::unique_ptr<git_reference, reference_deleter> ref;
 	};
+
+
+	std::string normalize_reference_name(const char * name, normalisation_opts flags = normalisation_opts::normal);
+	std::string normalize_reference_name(const std::string & name, normalisation_opts flags = normalisation_opts::normal);
+
+	bool reference_name_valid(const char * name);
+	bool reference_name_valid(const std::string & name);
+}
+
+
+constexpr git2pp::normalisation_opts git2pp::operator&(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) {
+	return static_cast<normalisation_opts>(static_cast<unsigned int>(lhs) & static_cast<unsigned int>(rhs));
+}
+
+constexpr git2pp::normalisation_opts git2pp::operator|(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) {
+	return static_cast<normalisation_opts>(static_cast<unsigned int>(lhs) | static_cast<unsigned int>(rhs));
 }
