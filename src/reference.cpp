@@ -148,6 +148,8 @@ std::string git2pp::normalize_reference_name(const std::string & name, git2pp::n
 }
 
 std::string normalize_reference_name(const char * name, std::size_t name_len, git2pp::normalisation_opts flags) {
+	guard grd;
+
 	std::vector<char> ret;
 	ret.resize(name_len * 1.2);
 
@@ -158,6 +160,8 @@ std::string normalize_reference_name(const char * name, std::size_t name_len, gi
 }
 
 bool reference_name_valid(const char * name) {
+	guard grd;
+
 	return git_reference_is_valid_name(name);
 }
 

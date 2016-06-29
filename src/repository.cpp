@@ -311,6 +311,8 @@ std::string git2pp::discover_repository(const std::string & start, const std::st
 }
 
 std::string git2pp::discover_repository(const char * start, const std::string & ceiling_dirs, bool across_fs) {
+	guard grd;
+
 	git_buf buf{};
 	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
 
