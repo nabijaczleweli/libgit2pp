@@ -24,6 +24,7 @@
 #include "libgit2++/repository.hpp"
 #include "libgit2++/detail/scope.hpp"
 #include <git2/buffer.h>
+#include <git2/object.h>
 
 
 void git2pp::repository_deleter::operator()(git_repository * repo) const noexcept {
@@ -300,6 +301,18 @@ void git2pp::repository::reference_ensure_log(const char * name) noexcept {
 
 void git2pp::repository::reference_ensure_log(const std::string & name) noexcept {
 	reference_ensure_log(name.c_str());
+}
+
+git2pp::object git2pp::repository::lookup(const git_oid & id, object_type type) noexcept {
+	git_object * result;
+	git_object_lookup(&result, repo.get(), &id, static_cast<git_otype>(type));
+	return {result};
+}
+
+git2pp::object git2pp::repository::lookup_prefix(const git_oid & id, std::size_t length, object_type type) noexcept {
+	git_object * result;
+	git_object_lookup_prefix(&result, repo.get(), &id, length, static_cast<git_otype>(type));
+	return {result};
 }
 
 

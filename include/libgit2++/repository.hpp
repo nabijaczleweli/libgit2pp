@@ -162,8 +162,12 @@ namespace git2pp {
 		void reference_ensure_log(const char * name) noexcept;
 		void reference_ensure_log(const std::string & name) noexcept;
 
+		object lookup(const git_oid & id, object_type type) noexcept;
+		object lookup_prefix(const git_oid & id, std::size_t length, object_type type) noexcept;
+
 	private:
 		friend class reference;
+		friend class object;
 
 		repository(git_repository * repo, bool owning = true) noexcept;
 

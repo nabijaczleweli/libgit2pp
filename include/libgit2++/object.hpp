@@ -25,11 +25,16 @@
 
 
 #include "guard.hpp"
+#include <git2/oid.h>
 #include <git2/types.h>
 #include <memory>
+#include <string>
 
 
 namespace git2pp {
+	class repository;
+
+
 	enum class object_type {
 		any             = GIT_OBJ_ANY,
 		bad             = GIT_OBJ_BAD,
@@ -41,23 +46,39 @@ namespace git2pp {
 		delta_object_id = GIT_OBJ_REF_DELTA,
 	};
 
+	bool object_type_loose(object_type type) noexcept;
+	std::string object_type_to_name(object_type type) noexcept;
+	object_type object_type_from_name(const char * name) noexcept;
+	object_type object_type_from_name(const std::string & name) noexcept;
+
 
 	class object_deleter {
 	public:
 		bool owning;
 
-		void operator()(git_object * ref) const noexcept;
+		void operator()(git_object * obj) const noexcept;
 	};
 
 
 	class object : public guard {
 		friend class reference;
+		friend class repository;
 
 
 	public:
-	private:
-		object(git_object * ref, bool owning = true) noexcept;
+		object lookup_by_path(const char * path, object_type type) const noexcept;
+		object lookup_by_path(const std::string & path, object_type type) const noexcept;
 
-		std::unique_ptr<git_object, object_deleter> ref;
+		const git_oid & id() const noexcept;
+		std::string short_id() const;
+		object_type type() const noexcept;
+
+		repository owner() const noexcept;
+		object peel(object_type target_type) const noexcept;
+
+	private:
+		object(git_object * obj, bool owning = true) noexcept;
+
+		std::unique_ptr<git_object, object_deleter> obj;
 	};
 }
