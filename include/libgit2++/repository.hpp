@@ -24,8 +24,10 @@
 #pragma once
 
 
+#include "commit.hpp"
 #include "configuration.hpp"
 #include "guard.hpp"
+#include "branch.hpp"
 #include "object.hpp"
 #include "reference.hpp"
 #include <experimental/optional>
@@ -164,6 +166,14 @@ namespace git2pp {
 
 		object lookup(const git_oid & id, object_type type) noexcept;
 		object lookup_prefix(const git_oid & id, std::size_t length, object_type type) noexcept;
+
+		reference create_branch(const char * name, const commit & target, bool force = false) noexcept;
+		reference create_branch(const std::string & name, const commit & target, bool force = false) noexcept;
+		reference create_branch(const char * name, const annotated_commit & target, bool force = false) noexcept;
+		reference create_branch(const std::string & name, const annotated_commit & target, bool force = false) noexcept;
+
+		std::experimental::optional<reference> lookup_branch(const char * name, branch_type type) noexcept;
+		std::experimental::optional<reference> lookup_branch(const std::string & name, branch_type type) noexcept;
 
 	private:
 		friend class reference;

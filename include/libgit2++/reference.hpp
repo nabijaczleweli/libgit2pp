@@ -94,6 +94,14 @@ namespace git2pp {
 
 		object peel(object_type type) noexcept;
 
+		reference branch_rename(const char * new_name, bool force = false) noexcept;
+		reference branch_rename(const std::string & new_name, bool force = false) noexcept;
+		std::string branch_name() const;
+
+		reference branch_upstream() const noexcept;
+		void branch_upstream(const char * name) noexcept;
+		void branch_upstream(const std::string & name) noexcept;
+
 	private:
 		reference(git_reference * ref, bool owning = true) noexcept;
 

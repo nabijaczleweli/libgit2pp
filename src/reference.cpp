@@ -24,6 +24,7 @@
 #include "libgit2++/reference.hpp"
 #include "libgit2++/repository.hpp"
 #include <cstring>
+#include <git2/branch.h>
 #include <git2/errors.h>
 #include <vector>
 
@@ -133,6 +134,36 @@ git2pp::object git2pp::reference::peel(object_type type) noexcept {
 	git_object * result;
 	git_reference_peel(&result, ref.get(), static_cast<git_otype>(type));
 	return {result};
+}
+
+git2pp::reference git2pp::reference::branch_rename(const char * new_name, bool force) noexcept {
+	git_reference * result;
+	git_branch_move(&result, ref.get(), new_name, force);
+	return {result};
+}
+
+git2pp::reference git2pp::reference::branch_rename(const std::string & new_name, bool force) noexcept {
+	return branch_rename(new_name.c_str(), force);
+}
+
+std::string git2pp::reference::branch_name() const {
+	const char * result;
+	git_branch_name(&result, ref.get());
+	return result;
+}
+
+git2pp::reference git2pp::reference::branch_upstream() const noexcept {
+	git_reference * result;
+	git_branch_upstream(&result, ref.get());
+	return {result};
+}
+
+void git2pp::reference::branch_upstream(const char * name)  noexcept {
+	git_branch_set_upstream(ref.get(), name);
+}
+
+void git2pp::reference::branch_upstream(const std::string& name)  noexcept {
+	branch_upstream(name.c_str());
 }
 
 

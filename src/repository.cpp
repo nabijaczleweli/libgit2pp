@@ -23,6 +23,7 @@
 
 #include "libgit2++/repository.hpp"
 #include "libgit2++/detail/scope.hpp"
+#include <git2/branch.h>
 #include <git2/buffer.h>
 #include <git2/object.h>
 
@@ -313,6 +314,36 @@ git2pp::object git2pp::repository::lookup_prefix(const git_oid & id, std::size_t
 	git_object * result;
 	git_object_lookup_prefix(&result, repo.get(), &id, length, static_cast<git_otype>(type));
 	return {result};
+}
+
+git2pp::reference git2pp::repository::create_branch(const char * name, const git2pp::commit & target, bool force) noexcept {
+	git_reference * result;
+	git_branch_create(&result, repo.get(), name, target.cmt.get(), force);
+	return {result};
+}
+
+git2pp::reference git2pp::repository::create_branch(const std::string & name, const git2pp::commit & target, bool force) noexcept {
+	return create_branch(name.c_str(), target, force);
+}
+
+git2pp::reference git2pp::repository::create_branch(const char * name, const git2pp::annotated_commit & target, bool force) noexcept {
+	git_reference * result;
+	git_branch_create_from_annotated(&result, repo.get(), name, target.cmt.get(), force);
+	return {result};
+}
+
+git2pp::reference git2pp::repository::create_branch(const std::string & name, const git2pp::annotated_commit & target, bool force) noexcept {
+	return create_branch(name.c_str(), target, force);
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::lookup_branch(const char * name, branch_type type) noexcept {
+	git_reference * result;
+	git_branch_lookup(&result, repo.get(), name, static_cast<git_branch_t>(type));
+	return {result};
+}
+
+std::experimental::optional<git2pp::reference> git2pp::repository::lookup_branch(const std::string & name, branch_type type) noexcept {
+	return lookup_branch(name.c_str(), type);
 }
 
 
