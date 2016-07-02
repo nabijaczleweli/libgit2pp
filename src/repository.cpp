@@ -346,6 +346,46 @@ std::experimental::optional<git2pp::reference> git2pp::repository::lookup_branch
 	return lookup_branch(name.c_str(), type);
 }
 
+std::string git2pp::repository::upstream_branch(const char * name) const {
+	git_buf buf{};
+	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
+
+	git_branch_upstream_name(&buf, repo.get(), name);
+
+	return buf.ptr;
+}
+
+std::string git2pp::repository::branch_remote_name(const char * name) const {
+	git_buf buf{};
+	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
+
+	git_branch_remote_name(&buf, repo.get(), name);
+
+	return buf.ptr;
+}
+
+std::string git2pp::repository::branch_remote_name(const std::string & name) const {
+	return branch_remote_name(name.c_str());
+}
+
+std::string git2pp::repository::branch_remote_upstream(const char * name) const {
+	git_buf buf{};
+	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
+
+	git_branch_upstream_remote(&buf, repo.get(), name);
+
+	return buf.ptr;
+}
+
+std::string git2pp::repository::branch_remote_upstream(const std::string & name) const {
+	return branch_remote_upstream(name.c_str());
+}
+
+
+std::string git2pp::repository::upstream_branch(const std::string & name) const {
+	return upstream_branch(name.c_str());
+}
+
 
 git2pp::repository::repository(git_repository * r, bool owning) noexcept : repo(r, {owning}) {}
 

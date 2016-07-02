@@ -24,10 +24,10 @@
 #pragma once
 
 
+#include "branch.hpp"
 #include "commit.hpp"
 #include "configuration.hpp"
 #include "guard.hpp"
-#include "branch.hpp"
 #include "object.hpp"
 #include "reference.hpp"
 #include <experimental/optional>
@@ -174,6 +174,14 @@ namespace git2pp {
 
 		std::experimental::optional<reference> lookup_branch(const char * name, branch_type type) noexcept;
 		std::experimental::optional<reference> lookup_branch(const std::string & name, branch_type type) noexcept;
+
+		std::string upstream_branch(const char * local_branch_name) const;
+		std::string upstream_branch(const std::string & local_branch_name) const;
+
+		std::string branch_remote_name(const char * name) const;
+		std::string branch_remote_name(const std::string & name) const;
+		std::string branch_remote_upstream(const char * name) const;
+		std::string branch_remote_upstream(const std::string & name) const;
 
 	private:
 		friend class reference;

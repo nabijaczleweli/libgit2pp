@@ -158,12 +158,16 @@ git2pp::reference git2pp::reference::branch_upstream() const noexcept {
 	return {result};
 }
 
-void git2pp::reference::branch_upstream(const char * name)  noexcept {
+void git2pp::reference::branch_upstream(const char * name) noexcept {
 	git_branch_set_upstream(ref.get(), name);
 }
 
-void git2pp::reference::branch_upstream(const std::string& name)  noexcept {
+void git2pp::reference::branch_upstream(const std::string & name) noexcept {
 	branch_upstream(name.c_str());
+}
+
+bool git2pp::reference::branch_is_head() const noexcept {
+	return git_branch_is_head(ref.get());
 }
 
 

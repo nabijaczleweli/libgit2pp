@@ -102,6 +102,8 @@ namespace git2pp {
 		void branch_upstream(const char * name) noexcept;
 		void branch_upstream(const std::string & name) noexcept;
 
+		bool branch_is_head() const noexcept;
+
 	private:
 		reference(git_reference * ref, bool owning = true) noexcept;
 
