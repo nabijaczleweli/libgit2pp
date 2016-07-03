@@ -30,19 +30,73 @@
 
 
 namespace git2pp {
+	enum class configuration_priority_level {
+		system_wide    = GIT_CONFIG_LEVEL_SYSTEM,
+		xdg_compatible = GIT_CONFIG_LEVEL_XDG,
+		global         = GIT_CONFIG_LEVEL_GLOBAL,
+		local          = GIT_CONFIG_LEVEL_LOCAL,
+		application    = GIT_CONFIG_LEVEL_APP,
+
+		highest = GIT_CONFIG_HIGHEST_LEVEL,
+	};
+
+
 	class configuration_deleter {
 	public:
 		void operator()(git_config * config) const noexcept;
 	};
 
+	class configuration_entry_deleter {
+	public:
+		void operator()(git_config_entry * config) const noexcept;
+	};
+
+
+	class configuration_entry;
 
 	class configuration : public guard {
 	public:
+		// not `default` because it's a keyword
+		configuration default_config() noexcept;
+
+
+		void add_file(const char * path, configuration_priority_level priority, bool force = false) noexcept;
+		void add_file(const std::string path, configuration_priority_level priority, bool force = false) noexcept;
+
+		configuration open_level(configuration_priority_level priority) const noexcept;
+		configuration open_global() noexcept;
+		configuration snapshot() noexcept;
+
+		configuration() noexcept;
+		configuration(const char * path) noexcept;
+		configuration(const std::string & path) noexcept;
+		configuration(const configuration & other) noexcept;
+
 	private:
 		friend class repository;
 
-		configuration(git_config * config) noexcept;
+		configuration(git_config * cfg) noexcept;
 
-		std::unique_ptr<git_config, configuration_deleter> config;
+		std::unique_ptr<git_config, configuration_deleter> cfg;
 	};
+
+
+	class configuration_entry : public guard {
+	public:
+		std::string name() const;
+		std::string value() const;
+		configuration_priority_level priority_level() const noexcept;
+
+	private:
+		friend class configuration;
+
+		configuration_entry(git_config_entry * ent) noexcept;
+
+		std::unique_ptr<git_config_entry, configuration_entry_deleter> ent;
+	};
+
+
+	std::string global_configuration_path();
+	std::string xdg_configuration_path();
+	std::string system_configuration_path();
 }
