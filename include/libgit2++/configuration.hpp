@@ -25,8 +25,10 @@
 
 
 #include "guard.hpp"
+#include <experimental/optional>
 #include <git2/config.h>
 #include <memory>
+#include <vector>
 
 
 namespace git2pp {
@@ -46,13 +48,8 @@ namespace git2pp {
 		void operator()(git_config * config) const noexcept;
 	};
 
-	class configuration_entry_deleter {
-	public:
-		void operator()(git_config_entry * config) const noexcept;
-	};
 
-
-	class configuration_entry;
+	struct configuration_entry;
 
 	class configuration : public guard {
 	public:
@@ -65,7 +62,41 @@ namespace git2pp {
 
 		configuration open_level(configuration_priority_level priority) const noexcept;
 		configuration open_global() noexcept;
-		configuration snapshot() noexcept;
+
+		configuration_entry operator[](const char * name) const;
+		configuration_entry operator[](const std::string & name) const;
+
+		std::int32_t int32(const char * name) const noexcept;
+		std::int32_t int32(const std::string & name) const noexcept;
+		void int32(const char * name, std::int32_t value) noexcept;
+		void int32(const std::string & name, std::int32_t value) noexcept;
+
+		std::int64_t int64(const char * name) const noexcept;
+		std::int64_t int64(const std::string & name) const noexcept;
+		void int64(const char * name, std::int64_t value) noexcept;
+		void int64(const std::string & name, std::int64_t value) noexcept;
+
+		bool boolean(const char * name) const noexcept;
+		bool boolean(const std::string & name) const noexcept;
+		void boolean(const char * name, bool value) noexcept;
+		void boolean(const std::string & name, bool value) noexcept;
+
+		std::string path(const char * name) const;
+		std::string path(const std::string & name) const;
+
+		std::string string(const char * name) const;
+		std::string string(const std::string & name) const;
+		void string(const char * name, const char * value);
+		void string(const std::string & name, const char * value);
+		void string(const char * name, const std::string & value);
+		void string(const std::string & name, const std::string & value);
+
+		std::vector<configuration_entry> multivar(const char * name, const char * matching = nullptr) const;
+		std::vector<configuration_entry> multivar(const std::string & name, std::experimental::optional<std::string> matching = std::experimental::nullopt) const;
+		void multivar(const char * name, const char * value, const char * matching = nullptr);
+		void multivar(const std::string & name, const std::string & value, std::experimental::optional<std::string> matching = std::experimental::nullopt);
+		void multivar_delete(const char * name, const char * matching = nullptr);
+		void multivar_delete(const std::string & name, std::experimental::optional<std::string> matching = std::experimental::nullopt);
 
 		configuration() noexcept;
 		configuration(const char * path) noexcept;
@@ -81,18 +112,17 @@ namespace git2pp {
 	};
 
 
-	class configuration_entry : public guard {
+	struct configuration_entry {
 	public:
-		std::string name() const;
-		std::string value() const;
-		configuration_priority_level priority_level() const noexcept;
+		std::string name;
+		std::string value;
+		configuration_priority_level priority_level;
 
 	private:
 		friend class configuration;
 
-		configuration_entry(git_config_entry * ent) noexcept;
-
-		std::unique_ptr<git_config_entry, configuration_entry_deleter> ent;
+		configuration_entry(git_config_entry * ent);
+		configuration_entry(const git_config_entry * ent);
 	};
 
 
