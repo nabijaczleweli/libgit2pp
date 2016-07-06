@@ -213,6 +213,12 @@ void git2pp::configuration::multivar_delete(const std::string & name, std::exper
 		multivar_delete(name.c_str(), nullptr);
 }
 
+git2pp::transaction git2pp::configuration::lock() noexcept {
+	git_transaction * result;
+	git_config_lock(&result, cfg.get());
+	return {result};
+}
+
 
 git2pp::configuration::configuration() noexcept {
 	git_config * result;
@@ -257,4 +263,55 @@ std::string git2pp::xdg_configuration_path() {
 
 std::string git2pp::system_configuration_path() {
 	return ::configuration_path<decltype(&git_config_find_system), git_config_find_system>();
+}
+
+bool git2pp::parse_configuration_boolean(const char * value) noexcept {
+	guard grd;
+
+	int result;
+	git_config_parse_bool(&result, value);
+	return result;
+}
+
+bool git2pp::parse_configuration_boolean(const std::string & value) noexcept {
+	return parse_configuration_boolean(value.c_str());
+}
+
+std::int32_t git2pp::parse_configuration_int32(const char * value) noexcept {
+	guard grd;
+
+	std::int32_t result;
+	git_config_parse_int32(&result, value);
+	return result;
+}
+
+std::int32_t git2pp::parse_configuration_int32(const std::string & value) noexcept {
+	return parse_configuration_int32(value.c_str());
+}
+
+std::int64_t git2pp::parse_configuration_int64(const char * value) noexcept {
+	guard grd;
+
+	std::int64_t result;
+	git_config_parse_int64(&result, value);
+	return result;
+}
+
+std::int64_t git2pp::parse_configuration_int64(const std::string & value) noexcept {
+	return parse_configuration_int64(value.c_str());
+}
+
+std::string git2pp::parse_configuration_path(const char * value) {
+	guard grd;
+
+	git_buf buf{};
+	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
+
+	git_config_parse_path(&buf, value);
+
+	return buf.ptr;
+}
+
+std::string git2pp::parse_configuration_path(const std::string & value) {
+	return parse_configuration_path(value.c_str());
 }

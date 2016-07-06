@@ -25,6 +25,7 @@
 
 
 #include "guard.hpp"
+#include "transaction.hpp"
 #include <experimental/optional>
 #include <git2/config.h>
 #include <memory>
@@ -98,6 +99,15 @@ namespace git2pp {
 		void multivar_delete(const char * name, const char * matching = nullptr);
 		void multivar_delete(const std::string & name, std::experimental::optional<std::string> matching = std::experimental::nullopt);
 
+		template <class F>
+		void foreach(F && func) const;
+		template <class F>
+		void foreach_matching(const char * match, F && func) const;
+		template <class F>
+		void foreach_matching(const std::string & match, F && func) const;
+
+		transaction lock() noexcept;
+
 		configuration() noexcept;
 		configuration(const char * path) noexcept;
 		configuration(const std::string & path) noexcept;
@@ -129,4 +139,30 @@ namespace git2pp {
 	std::string global_configuration_path();
 	std::string xdg_configuration_path();
 	std::string system_configuration_path();
+
+	bool parse_configuration_boolean(const char * value) noexcept;
+	bool parse_configuration_boolean(const std::string & value) noexcept;
+	std::int32_t parse_configuration_int32(const char * value) noexcept;
+	std::int32_t parse_configuration_int32(const std::string & value) noexcept;
+	std::int64_t parse_configuration_int64(const char * value) noexcept;
+	std::int64_t parse_configuration_int64(const std::string & value) noexcept;
+	std::string parse_configuration_path(const char * value);
+	std::string parse_configuration_path(const std::string & value);
+}
+
+
+template <class F>
+void git2pp::configuration::foreach(F && func) const {
+	git_config_foreach(cfg.get(), [](const git_config_entry * entry, void * func) { (*reinterpret_cast<F *>(func))(configuration_entry(entry)); }, &func);
+}
+
+template <class F>
+void git2pp::configuration::foreach_matching(const char * match, F && func) const {
+	git_config_foreach_match(cfg.get(), match, [](const git_config_entry * entry, void * func) { (*reinterpret_cast<F *>(func))(configuration_entry(entry)); },
+	                         &func);
+}
+
+template <class F>
+void git2pp::configuration::foreach_matching(const std::string & match, F && func) const {
+	foreach_matching(match.c_str(), std::forward<F>(func));
 }
