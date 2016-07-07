@@ -184,6 +184,7 @@ namespace git2pp {
 		std::string branch_remote_upstream(const std::string & name) const;
 
 	private:
+		friend class transaction;
 		friend class reference;
 		friend class object;
 

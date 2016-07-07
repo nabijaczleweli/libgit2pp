@@ -25,6 +25,7 @@
 
 
 #include "guard.hpp"
+#include "signature.hpp"
 #include <git2/oid.h>
 #include <git2/types.h>
 #include <memory>
@@ -39,10 +40,30 @@ namespace git2pp {
 	};
 
 
-	struct transaction_entry;
+	class repository;
+	class reflog;
 
 	class transaction : public guard {
 	public:
+		void lock_reference(const char * name) noexcept;
+		void lock_reference(const std::string & name) noexcept;
+
+		void set_target(const char * name, const git_oid & target, const char * message) noexcept;
+		void set_target(const char * name, const git_oid & target, const char * message, const git_signature & sig) noexcept;
+		void set_target_symbollic(const char * name, const char * target, const char * message) noexcept;
+		void set_target_symbollic(const char * name, const char * target, const char * message, const git_signature & sig) noexcept;
+		void set_target_symbollic(const std::string & name, const std::string & target, const std::string & message) noexcept;
+		void set_target_symbollic(const std::string & name, const std::string & target, const std::string & message, const git_signature & sig) noexcept;
+
+		void set_reference_reflog(const char * name, const reflog & log) noexcept;
+		void set_reference_reflog(const std::string & name, const reflog & log) noexcept;
+		void remove_reference(const char * name) noexcept;
+		void remove_reference(const std::string & name) noexcept;
+
+		void commit() noexcept;
+
+		transaction(repository & repo) noexcept;
+
 	private:
 		friend class configuration;
 
