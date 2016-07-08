@@ -23,6 +23,7 @@
 
 #include "libgit2++/repository.hpp"
 #include "libgit2++/detail/scope.hpp"
+#include "libgit2++/reflog.hpp"
 #include <git2/branch.h>
 #include <git2/buffer.h>
 #include <git2/object.h>
@@ -355,6 +356,10 @@ std::string git2pp::repository::upstream_branch(const char * name) const {
 	return buf.ptr;
 }
 
+std::string git2pp::repository::upstream_branch(const std::string & name) const {
+	return upstream_branch(name.c_str());
+}
+
 std::string git2pp::repository::branch_remote_name(const char * name) const {
 	git_buf buf{};
 	detail::quickscope_wrapper buf_cleanup{[&]() { git_buf_free(&buf); }};
@@ -381,9 +386,38 @@ std::string git2pp::repository::branch_remote_upstream(const std::string & name)
 	return branch_remote_upstream(name.c_str());
 }
 
+git2pp::reflog git2pp::repository::reflog_read(const char * name) noexcept {
+	git_reflog * result;
+	git_reflog_read(&result, repo.get(), name);
+	return {result};
+}
 
-std::string git2pp::repository::upstream_branch(const std::string & name) const {
-	return upstream_branch(name.c_str());
+git2pp::reflog git2pp::repository::reflog_read(const std::string & name) noexcept {
+	return reflog_read(name.c_str());
+}
+
+void git2pp::repository::reflog_rename(const char * old_name, const char * new_name) noexcept {
+	git_reflog_rename(repo.get(), old_name, new_name);
+}
+
+void git2pp::repository::reflog_rename(const std::string & old_name, const char * new_name) noexcept {
+	reflog_rename(old_name.c_str(), new_name);
+}
+
+void git2pp::repository::reflog_rename(const char * old_name, const std::string & new_name) noexcept {
+	reflog_rename(old_name, new_name.c_str());
+}
+
+void git2pp::repository::reflog_rename(const std::string & old_name, const std::string & new_name) noexcept {
+	reflog_rename(old_name.c_str(), new_name.c_str());
+}
+
+void git2pp::repository::reflog_delete(const char * name) noexcept {
+	git_reflog_delete(repo.get(), name);
+}
+
+void git2pp::repository::reflog_delete(const std::string & name) noexcept {
+	reflog_delete(name.c_str());
 }
 
 

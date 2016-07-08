@@ -23,6 +23,8 @@
 
 #include "libgit2++/reflog.hpp"
 #include "libgit2++/detail/scope.hpp"
+#include <sstream>
+#include <stdexcept>
 
 
 void git2pp::reflog_deleter::operator()(git_reflog * log) const noexcept {
@@ -30,4 +32,54 @@ void git2pp::reflog_deleter::operator()(git_reflog * log) const noexcept {
 }
 
 
+void git2pp::reflog::write() noexcept {
+	git_reflog_write(log.get());
+}
+
+void git2pp::reflog::append(const git_oid & id, const git_signature & committer, const char * message) noexcept {
+	git_reflog_append(log.get(), &id, &committer, message);
+}
+
+void git2pp::reflog::append(const git_oid & id, const git_signature & committer, const std::string & message) noexcept {
+	append(id, committer, message.c_str());
+}
+
+void git2pp::reflog::drop(size_t idx, bool rewrite_previous_entry) noexcept {
+	git_reflog_drop(log.get(), idx, rewrite_previous_entry);
+}
+
+std::size_t git2pp::reflog::size() noexcept {
+	return git_reflog_entrycount(log.get());
+}
+
+git2pp::reflog_entry git2pp::reflog::operator[](std::size_t idx) const {
+	if(const auto entry = git_reflog_entry_byindex(log.get(), idx))
+		return {entry};
+	else
+		throw std::out_of_range(static_cast<std::stringstream &>(std::stringstream{} << "idx=" << idx << " >= size()=" << git_reflog_entrycount(log.get())
+		                                                                             << " when accessing a reflog entry")
+		                            .str());
+}
+
+
 git2pp::reflog::reflog(git_reflog * r) noexcept : log(r) {}
+
+
+const git_oid & git2pp::reflog_entry::old_oid() const noexcept {
+	return *git_reflog_entry_id_old(ent);
+}
+
+const git_oid & git2pp::reflog_entry::new_oid() const noexcept {
+	return *git_reflog_entry_id_new(ent);
+}
+
+const git_signature & git2pp::reflog_entry::committer() const noexcept {
+	return *git_reflog_entry_committer(ent);
+}
+
+const char * git2pp::reflog_entry::message() const noexcept {
+	return git_reflog_entry_message(ent);
+}
+
+
+git2pp::reflog_entry::reflog_entry(const git_reflog_entry * ent) noexcept : ent(ent) {}

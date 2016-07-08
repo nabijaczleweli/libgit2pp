@@ -183,6 +183,17 @@ namespace git2pp {
 		std::string branch_remote_upstream(const char * name) const;
 		std::string branch_remote_upstream(const std::string & name) const;
 
+		reflog reflog_read(const char * name) noexcept;
+		reflog reflog_read(const std::string & name) noexcept;
+
+		void reflog_rename(const char * old_name, const char * new_name) noexcept;
+		void reflog_rename(const std::string & old_name, const char * new_name) noexcept;
+		void reflog_rename(const char * old_name, const std::string & new_name) noexcept;
+		void reflog_rename(const std::string & old_name, const std::string & new_name) noexcept;
+
+		void reflog_delete(const char * name) noexcept;
+		void reflog_delete(const std::string & name) noexcept;
+
 	private:
 		friend class transaction;
 		friend class reference;

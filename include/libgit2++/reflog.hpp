@@ -25,8 +25,10 @@
 
 
 #include "guard.hpp"
+#include "signature.hpp"
 #include <git2/reflog.h>
 #include <memory>
+#include <string>
 
 
 namespace git2pp {
@@ -36,13 +38,42 @@ namespace git2pp {
 	};
 
 
+	class repository;
+	class reflog_entry;
+
 	class reflog : public guard {
 	public:
+		void write() noexcept;
+
+		void append(const git_oid & id, const git_signature & committer, const char * message) noexcept;
+		void append(const git_oid & id, const git_signature & committer, const std::string & message) noexcept;
+
+		void drop(size_t idx, bool rewrite_previous_entry) noexcept;
+
+		std::size_t size() noexcept;
+		reflog_entry operator[](std::size_t idx) const;
+
 	private:
+		friend class repository;
 		friend class transaction;
 
 		reflog(git_reflog * log) noexcept;
 
 		std::unique_ptr<git_reflog, reflog_deleter> log;
+	};
+
+	class reflog_entry : public guard {
+	public:
+		const git_oid & old_oid() const noexcept;
+		const git_oid & new_oid() const noexcept;
+		const git_signature & committer() const noexcept;
+		const char * message() const noexcept;
+
+	private:
+		friend class reflog;
+
+		reflog_entry(const git_reflog_entry * ent) noexcept;
+
+		const git_reflog_entry * ent;
 	};
 }

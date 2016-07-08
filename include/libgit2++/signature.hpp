@@ -38,6 +38,7 @@ namespace git2pp {
 		std::chrono::time_point<std::chrono::system_clock> time;
 		int timezone_offset;
 
+		signature(const git_signature & sig) noexcept;
 		operator git_signature() noexcept;
 	};
 }
