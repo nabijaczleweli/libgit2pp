@@ -25,10 +25,8 @@
 #include "libgit2++/detail/scope.hpp"
 
 
-git2pp::signature::signature(const git_signature & sig) noexcept : name(sig.name),
-                                                                   email(sig.email),
-                                                                   time(std::chrono::seconds(sig.when.time)),
-                                                                   timezone_offset(sig.when.offset) {}
+git2pp::signature::signature(const git_signature & sig)
+      : name(sig.name), email(sig.email), time(std::chrono::seconds(sig.when.time)), timezone_offset(sig.when.offset) {}
 
 git2pp::signature::operator git_signature() noexcept {
 	return {&name[0], &email[0], {std::chrono::duration_cast<std::chrono::seconds>(time.time_since_epoch()).count(), timezone_offset}};

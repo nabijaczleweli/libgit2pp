@@ -24,11 +24,15 @@
 #pragma once
 
 
-#include "commit.hpp"
+#include "commit_tree.hpp"
 #include "guard.hpp"
-#include <git2/commit.h>
+#include "signature.hpp"
+#include <chrono>
+#include <experimental/optional>
 #include <git2/annotated_commit.h>
+#include <git2/commit.h>
 #include <memory>
+#include <utility>
 
 
 namespace git2pp {
@@ -47,8 +51,34 @@ namespace git2pp {
 	};
 
 
+	class repository;
+
 	class commit : public guard {
 	public:
+		const git_oid & id() const noexcept;
+		repository owner() const noexcept;
+		std::pair<std::chrono::time_point<std::chrono::system_clock>, int> time() const noexcept;
+
+		const char * message() const noexcept;
+		const char * message_raw() const noexcept;
+		std::experimental::optional<std::string> message_summary() const;
+		std::experimental::optional<std::string> message_body() const;
+		std::experimental::optional<std::string> message_encoding() const;
+
+		const git_signature & committer() const noexcept;
+		const git_signature & author() const noexcept;
+
+		commit_tree tree() const noexcept;
+		const git_oid & tree_id() const noexcept;
+		unsigned int parent_amount() const noexcept;
+
+		commit parent(unsigned int n) const noexcept;
+		std::experimental::optional<git_oid> parent_id(unsigned int n) const noexcept;
+		commit ancestor(unsigned int n) const noexcept;
+
+		std::string header_field(const char * field) const;
+		std::string header_field(const std::string & field) const;
+
 	private:
 		friend class repository;
 

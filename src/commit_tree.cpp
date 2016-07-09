@@ -21,24 +21,14 @@
 // DEALINGS IN THE SOFTWARE.
 
 
-#pragma once
+#include "libgit2++/commit_tree.hpp"
+#include <git2/tree.h>
 
 
-#include "guard.hpp"
-#include <chrono>
-#include <git2/types.h>
-#include <string>
-
-
-namespace git2pp {
-	class signature : public guard {
-	public:
-		std::string name;
-		std::string email;
-		std::chrono::time_point<std::chrono::system_clock> time;
-		int timezone_offset;
-
-		signature(const git_signature & sig);
-		operator git_signature() noexcept;
-	};
+void git2pp::commit_tree_deleter::operator()(git_tree * trr) const noexcept {
+	if(owning)
+		git_tree_free(trr);
 }
+
+
+git2pp::commit_tree::commit_tree(git_tree * r, bool owning) noexcept : trr(r, {owning}) {}

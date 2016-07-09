@@ -24,9 +24,11 @@
 #include "libgit2++/repository.hpp"
 #include "libgit2++/detail/scope.hpp"
 #include "libgit2++/reflog.hpp"
+#include <algorithm>
 #include <git2/branch.h>
 #include <git2/buffer.h>
 #include <git2/object.h>
+#include <iterator>
 
 
 void git2pp::repository_deleter::operator()(git_repository * repo) const noexcept {
@@ -418,6 +420,54 @@ void git2pp::repository::reflog_delete(const char * name) noexcept {
 
 void git2pp::repository::reflog_delete(const std::string & name) noexcept {
 	reflog_delete(name.c_str());
+}
+
+git2pp::commit git2pp::repository::commit_lookup(const git_oid & id) noexcept {
+	git_commit * result;
+	git_commit_lookup(&result, repo.get(), &id);
+	return {result};
+}
+
+git2pp::commit git2pp::repository::commit_lookup(const git_oid & id, std::size_t prefix_len) noexcept {
+	git_commit * result;
+	git_commit_lookup_prefix(&result, repo.get(), &id, prefix_len);
+	return {result};
+}
+
+std::experimental::optional<std::pair<std::string, std::string>> git2pp::repository::extract_commit_signature(git_oid id, const char * field) {
+	git_buf signature{};
+	git_buf data{};
+	detail::quickscope_wrapper signature_cleanup{[&]() { git_buf_free(&signature); }};
+	detail::quickscope_wrapper data_cleanup{[&]() { git_buf_free(&data); }};
+
+	if(git_commit_extract_signature(&signature, &data, repo.get(), &id, field))
+		return std::experimental::nullopt;
+	else
+		return {{signature.ptr, data.ptr}};
+}
+
+std::experimental::optional<std::pair<std::string, std::string>> git2pp::repository::extract_commit_signature(git_oid id, const std::string & field) {
+	return extract_commit_signature(id, field.c_str());
+}
+
+std::experimental::optional<std::pair<std::string, std::string>> git2pp::repository::extract_commit_signature(git_oid id) {
+	return extract_commit_signature(id, nullptr);
+}
+
+git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const char * message, const commit_tree & tree,
+                                          const std::vector<const commit *> & parents, const char * update_ref, const char * message_encoding) {
+	std::vector<const git_commit *> parents_raw;
+	parents_raw.reserve(parents.size());
+	std::transform(parents.begin(), parents.end(), std::back_inserter(parents_raw), [](const auto cmt) { return cmt->cmt.get(); });
+
+	git_oid id;
+	git_commit_create(&id, repo.get(), update_ref, &author, &committer, message_encoding, message, tree.trr.get(), parents.size(), parents_raw.data());
+	return id;
+}
+
+git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
+                                          const std::vector<const commit *> & parents, const char * update_ref, const char * message_encoding) {
+	return commit_create(author, committer, message.c_str(), tree, parents, update_ref, message_encoding);
 }
 
 

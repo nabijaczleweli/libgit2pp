@@ -27,6 +27,7 @@
 #include "branch.hpp"
 #include "commit.hpp"
 #include "configuration.hpp"
+#include "detail/types.hpp"
 #include "guard.hpp"
 #include "object.hpp"
 #include "reference.hpp"
@@ -194,10 +195,30 @@ namespace git2pp {
 		void reflog_delete(const char * name) noexcept;
 		void reflog_delete(const std::string & name) noexcept;
 
+		commit commit_lookup(const git_oid & id) noexcept;
+		commit commit_lookup(const git_oid & id, std::size_t prefix_len) noexcept;
+
+		std::experimental::optional<std::pair<std::string, std::string>> extract_commit_signature(git_oid id, const char * field);
+		std::experimental::optional<std::pair<std::string, std::string>> extract_commit_signature(git_oid id, const std::string & field);
+		std::experimental::optional<std::pair<std::string, std::string>> extract_commit_signature(git_oid id);
+
+		git_oid commit_create(const git_signature & author, const git_signature & committer, const char * message, const commit_tree & tree,
+		                      const std::vector<const commit *> & parents, const char * update_ref = nullptr, const char * message_encoding = nullptr);
+		git_oid commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
+		                      const std::vector<const commit *> & parents, const char * update_ref = nullptr, const char * message_encoding = nullptr);
+		template <class... T, class = std::enable_if_t<detail::are_all_equal<commit, T...>::value>>
+		git_oid commit_create(const git_signature & author, const git_signature & committer, const char * message, const commit_tree & tree,
+		                      const char * update_ref, const char * message_encoding, const T &... parents);
+		template <class... T, class = std::enable_if_t<detail::are_all_equal<commit, T...>::value>>
+		git_oid commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
+		                      const char * update_ref, const char * message_encoding, const T &... parents);
+
+
 	private:
 		friend class transaction;
 		friend class reference;
 		friend class object;
+		friend class commit;
 
 		repository(git_repository * repo, bool owning = true) noexcept;
 
@@ -240,4 +261,18 @@ void git2pp::repository::iterate_over_reference_names_glob(const char * glob, F 
 template <class F>
 void git2pp::repository::iterate_over_reference_names_glob(const std::string & glob, F && func) {
 	iterate_over_reference_names_glob(glob.c_str(), std::forward<F>(func));
+}
+
+template <class... T, class>
+git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const char * message, const commit_tree & tree,
+                                          const char * update_ref, const char * message_encoding, const T &... parents) {
+	git_oid id;
+	git_commit_create_v(&id, repo.get(), update_ref, &author, &committer, message_encoding, message, tree.trr.get(), sizeof...(T), parents.cmt.get()...);
+	return id;
+}
+
+template <class... T, class>
+git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
+                                          const char * update_ref, const char * message_encoding, const T &... parents) {
+	return commit_create(author, committer, message.c_str(), tree, update_ref, message_encoding, parents...);
 }

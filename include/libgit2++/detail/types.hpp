@@ -24,21 +24,20 @@
 #pragma once
 
 
-#include "guard.hpp"
-#include <chrono>
-#include <git2/types.h>
-#include <string>
+#include <type_traits>
 
 
 namespace git2pp {
-	class signature : public guard {
-	public:
-		std::string name;
-		std::string email;
-		std::chrono::time_point<std::chrono::system_clock> time;
-		int timezone_offset;
+	namespace detail {
+		// https://stackoverflow.com/questions/31533469/check-a-parameter-pack-for-all-of-type-t
 
-		signature(const git_signature & sig);
-		operator git_signature() noexcept;
-	};
+		template <typename... Conds>
+		struct and_ : std::true_type {};
+
+		template <typename Cond, typename... Conds>
+		struct and_<Cond, Conds...> : std::conditional_t<Cond::value, and_<Conds...>, std::false_type> {};
+
+		template <typename Target, typename... Ts>
+		using are_all_equal = and_<std::is_same<Target, Ts>...>;
+	}
 }

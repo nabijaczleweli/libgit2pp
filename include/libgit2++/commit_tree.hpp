@@ -25,20 +25,27 @@
 
 
 #include "guard.hpp"
-#include <chrono>
 #include <git2/types.h>
-#include <string>
+#include <memory>
 
 
 namespace git2pp {
-	class signature : public guard {
+	class commit_tree_deleter {
 	public:
-		std::string name;
-		std::string email;
-		std::chrono::time_point<std::chrono::system_clock> time;
-		int timezone_offset;
+		bool owning;
 
-		signature(const git_signature & sig);
-		operator git_signature() noexcept;
+		void operator()(git_tree * trr) const noexcept;
+	};
+
+
+	class commit_tree : public guard {
+	public:
+	private:
+		friend class commit;
+		friend class repository;
+
+		commit_tree(git_tree * trr, bool owning = true) noexcept;
+
+		std::unique_ptr<git_tree, commit_tree_deleter> trr;
 	};
 }
