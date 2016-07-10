@@ -133,6 +133,55 @@ std::string git2pp::commit::header_field(const std::string & field) const {
 }
 
 
+git2pp::annotated_commit git2pp::annotated_commit::from_reference(const git2pp::reference & ref) noexcept {
+	auto repo = ref.owner();
+	return from_reference(ref, repo);
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_reference(const git2pp::reference & ref, git2pp::repository & repo) noexcept {
+	git_annotated_commit * result;
+	git_annotated_commit_from_ref(&result, repo.repo.get(), ref.ref.get());
+	return {result};
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_fetch_head(git2pp::repository & repo, const char * branch_name, const char * remote_url,
+                                                                   const git_oid & remote_id) noexcept {
+	git_annotated_commit * result;
+	git_annotated_commit_from_fetchhead(&result, repo.repo.get(), branch_name, remote_url, &remote_id);
+	return {result};
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_fetch_head(git2pp::repository & repo, const std::string & branch_name, const char * remote_url,
+                                                                   const git_oid & remote_id) noexcept {
+	return from_fetch_head(repo, branch_name.c_str(), remote_url, remote_id);
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_fetch_head(git2pp::repository & repo, const char * branch_name, const std::string & remote_url,
+                                                                   const git_oid & remote_id) noexcept {
+	return from_fetch_head(repo, branch_name, remote_url.c_str(), remote_id);
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_fetch_head(git2pp::repository & repo, const std::string & branch_name, const std::string & remote_url,
+                                                                   const git_oid & remote_id) noexcept {
+	return from_fetch_head(repo, branch_name.c_str(), remote_url.c_str(), remote_id);
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_revspec(git2pp::repository & repo, const char * revspec) noexcept {
+	git_annotated_commit * result;
+	git_annotated_commit_from_revspec(&result, repo.repo.get(), revspec);
+	return {result};
+}
+
+git2pp::annotated_commit git2pp::annotated_commit::from_revspec(git2pp::repository & repo, const std::string & revspec) noexcept {
+	return from_revspec(repo, revspec.c_str());
+}
+
+
+const git_oid & git2pp::annotated_commit::id() const noexcept {
+	return *git_annotated_commit_id(cmt.get());
+}
+
+
 git2pp::commit::commit(git_commit * r, bool owning) noexcept : cmt(r, {owning}) {}
 
 git2pp::annotated_commit::annotated_commit(git_annotated_commit * r, bool owning) noexcept : cmt(r, {owning}) {}

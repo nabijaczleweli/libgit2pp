@@ -26,6 +26,7 @@
 
 #include "commit_tree.hpp"
 #include "guard.hpp"
+#include "reference.hpp"
 #include "signature.hpp"
 #include <chrono>
 #include <experimental/optional>
@@ -89,6 +90,20 @@ namespace git2pp {
 
 	class annotated_commit : public guard {
 	public:
+		annotated_commit from_reference(const reference & ref) noexcept;
+		annotated_commit from_reference(const reference & ref, repository & repo) noexcept;
+
+		annotated_commit from_fetch_head(repository & repo, const char * branch_name, const char * remote_url, const git_oid & remote_id) noexcept;
+		annotated_commit from_fetch_head(repository & repo, const std::string & branch_name, const char * remote_url, const git_oid & remote_id) noexcept;
+		annotated_commit from_fetch_head(repository & repo, const char * branch_name, const std::string & remote_url, const git_oid & remote_id) noexcept;
+		annotated_commit from_fetch_head(repository & repo, const std::string & branch_name, const std::string & remote_url, const git_oid & remote_id) noexcept;
+
+		annotated_commit from_revspec(repository & repo, const char * revspec) noexcept;
+		annotated_commit from_revspec(repository & repo, const std::string & revspec) noexcept;
+
+
+		const git_oid & id() const noexcept;
+
 	private:
 		friend class repository;
 

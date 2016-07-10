@@ -434,6 +434,12 @@ git2pp::commit git2pp::repository::commit_lookup(const git_oid & id, std::size_t
 	return {result};
 }
 
+git2pp::annotated_commit git2pp::repository::annotated_commit_lookup(const git_oid & id) noexcept {
+	git_annotated_commit * result;
+	git_annotated_commit_lookup(&result, repo.get(), &id);
+	return {result};
+}
+
 std::experimental::optional<std::pair<std::string, std::string>> git2pp::repository::extract_commit_signature(git_oid id, const char * field) {
 	git_buf signature{};
 	git_buf data{};

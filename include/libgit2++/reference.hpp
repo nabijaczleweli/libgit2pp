@@ -105,6 +105,8 @@ namespace git2pp {
 		bool branch_is_head() const noexcept;
 
 	private:
+		friend class annotated_commit;
+
 		reference(git_reference * ref, bool owning = true) noexcept;
 
 		std::unique_ptr<git_reference, reference_deleter> ref;

@@ -197,6 +197,7 @@ namespace git2pp {
 
 		commit commit_lookup(const git_oid & id) noexcept;
 		commit commit_lookup(const git_oid & id, std::size_t prefix_len) noexcept;
+		annotated_commit annotated_commit_lookup(const git_oid & id) noexcept;
 
 		std::experimental::optional<std::pair<std::string, std::string>> extract_commit_signature(git_oid id, const char * field);
 		std::experimental::optional<std::pair<std::string, std::string>> extract_commit_signature(git_oid id, const std::string & field);
@@ -215,6 +216,7 @@ namespace git2pp {
 
 
 	private:
+		friend class annotated_commit;
 		friend class transaction;
 		friend class reference;
 		friend class object;
