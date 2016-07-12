@@ -61,6 +61,7 @@ namespace git2pp {
 
 
 	class object : public guard {
+		friend class commit_tree_entry;
 		friend class reference;
 		friend class repository;
 

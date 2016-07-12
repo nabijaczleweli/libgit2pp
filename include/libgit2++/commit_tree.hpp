@@ -25,11 +25,23 @@
 
 
 #include "guard.hpp"
+#include "object.hpp"
+#include <git2/oid.h>
 #include <git2/types.h>
 #include <memory>
 
 
 namespace git2pp {
+	enum class filemode {
+		unreadable      = GIT_FILEMODE_UNREADABLE,
+		tree            = GIT_FILEMODE_TREE,
+		blob            = GIT_FILEMODE_BLOB,
+		blob_executable = GIT_FILEMODE_BLOB_EXECUTABLE,
+		link            = GIT_FILEMODE_LINK,
+		commit          = GIT_FILEMODE_COMMIT,
+	};
+
+
 	class commit_tree_deleter {
 	public:
 		bool owning;
@@ -37,9 +49,32 @@ namespace git2pp {
 		void operator()(git_tree * trr) const noexcept;
 	};
 
+	class commit_tree_entry_deleter {
+	public:
+		bool owning;
+
+		void operator()(git_tree_entry * ent) const noexcept;
+	};
+
+
+	class repository;
+	class commit_tree_entry;
 
 	class commit_tree : public guard {
 	public:
+		const git_oid & id() const noexcept;
+		repository owner() const noexcept;
+
+		std::size_t size() const noexcept;
+
+		commit_tree_entry operator[](std::size_t idx) const;
+		commit_tree_entry operator[](const git_oid & id) const;
+		commit_tree_entry at_filename(const char * filename) const;
+		commit_tree_entry at_filename(const std::string & filename) const;
+		commit_tree_entry at_path(const char * path) const;
+		commit_tree_entry at_path(const std::string & path) const;
+
+
 	private:
 		friend class commit;
 		friend class repository;
@@ -47,5 +82,32 @@ namespace git2pp {
 		commit_tree(git_tree * trr, bool owning = true) noexcept;
 
 		std::unique_ptr<git_tree, commit_tree_deleter> trr;
+	};
+
+	class commit_tree_entry : public guard {
+	public:
+		const char * name() const noexcept;
+		const git_oid & id() const noexcept;
+		object_type type() const noexcept;
+		filemode file_mode() const noexcept;
+		filemode file_mode_raw() const noexcept;
+
+		object to_object(repository & repo) const noexcept;
+
+		commit_tree_entry(const commit_tree_entry & other) noexcept;
+
+	private:
+		friend bool operator<(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+		friend bool operator>(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+		friend bool operator<=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+		friend bool operator>=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+		friend bool operator==(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+
+		friend class commit_tree;
+
+		commit_tree_entry(git_tree_entry * ent, bool owning = true) noexcept;
+		commit_tree_entry(const git_tree_entry * ent) noexcept;
+
+		std::unique_ptr<git_tree_entry, commit_tree_entry_deleter> ent;
 	};
 }

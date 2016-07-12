@@ -28,6 +28,7 @@
 #include <git2/branch.h>
 #include <git2/buffer.h>
 #include <git2/object.h>
+#include <git2/tree.h>
 #include <iterator>
 
 
@@ -474,6 +475,18 @@ git_oid git2pp::repository::commit_create(const git_signature & author, const gi
 git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
                                           const std::vector<const commit *> & parents, const char * update_ref, const char * message_encoding) {
 	return commit_create(author, committer, message.c_str(), tree, parents, update_ref, message_encoding);
+}
+
+git2pp::commit_tree git2pp::repository::tree_lookup(const git_oid & id) noexcept {
+	git_tree * result;
+	git_tree_lookup(&result, repo.get(), &id);
+	return {result};
+}
+
+git2pp::commit_tree git2pp::repository::tree_lookup(const git_oid & id, std::size_t prefix_len) noexcept {
+	git_tree * result;
+	git_tree_lookup_prefix(&result, repo.get(), &id, prefix_len);
+	return {result};
 }
 
 

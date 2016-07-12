@@ -26,6 +26,7 @@
 
 #include "branch.hpp"
 #include "commit.hpp"
+#include "commit_tree.hpp"
 #include "configuration.hpp"
 #include "detail/types.hpp"
 #include "guard.hpp"
@@ -214,9 +215,14 @@ namespace git2pp {
 		git_oid commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
 		                      const char * update_ref, const char * message_encoding, const T &... parents);
 
+		commit_tree tree_lookup(const git_oid & id) noexcept;
+		commit_tree tree_lookup(const git_oid & id, std::size_t prefix_len) noexcept;
+
 
 	private:
+		friend class commit_tree_entry;
 		friend class annotated_commit;
+		friend class commit_tree;
 		friend class transaction;
 		friend class reference;
 		friend class object;
