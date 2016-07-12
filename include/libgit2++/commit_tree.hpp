@@ -110,4 +110,10 @@ namespace git2pp {
 
 		std::unique_ptr<git_tree_entry, commit_tree_entry_deleter> ent;
 	};
+
+	bool operator<(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+	bool operator>(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+	bool operator<=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+	bool operator>=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+	bool operator==(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
 }
