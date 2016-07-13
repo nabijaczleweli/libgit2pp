@@ -220,6 +220,7 @@ namespace git2pp {
 
 
 	private:
+		friend class commit_tree_builder;
 		friend class commit_tree_entry;
 		friend class annotated_commit;
 		friend class commit_tree;

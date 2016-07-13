@@ -23,7 +23,6 @@
 
 #include "libgit2++/commit_tree.hpp"
 #include "libgit2++/repository.hpp"
-#include <git2/tree.h>
 #include <sstream>
 
 
@@ -35,6 +34,11 @@ void git2pp::commit_tree_deleter::operator()(git_tree * trr) const noexcept {
 void git2pp::commit_tree_entry_deleter::operator()(git_tree_entry * ent) const noexcept {
 	if(owning)
 		git_tree_entry_free(ent);
+}
+
+void git2pp::commit_tree_builder_deleter::operator()(git_treebuilder * ent) const noexcept {
+	if(owning)
+		git_treebuilder_free(ent);
 }
 
 
@@ -151,7 +155,62 @@ bool git2pp::operator==(const git2pp::commit_tree_entry & lhs, const git2pp::com
 }
 
 
+void git2pp::commit_tree_builder::clear() noexcept {
+	git_treebuilder_clear(bld.get());
+}
+
+git_oid git2pp::commit_tree_builder::write() noexcept {
+	git_oid id;
+	git_treebuilder_write(&id, bld.get());
+	return id;
+}
+
+unsigned int git2pp::commit_tree_builder::size() noexcept {
+	return git_treebuilder_entrycount(bld.get());
+}
+
+git2pp::commit_tree_entry git2pp::commit_tree_builder::operator[](const char * filename) noexcept {
+	return {git_treebuilder_get(bld.get(), filename)};
+}
+
+git2pp::commit_tree_entry git2pp::commit_tree_builder::operator[](const std::string & filename) noexcept {
+	return operator[](filename.c_str());
+}
+
+git2pp::commit_tree_entry git2pp::commit_tree_builder::insert(const char * filename, const git_oid & id, filemode mode) noexcept {
+	const git_tree_entry * result;
+	git_treebuilder_insert(&result, bld.get(), filename, &id, static_cast<git_filemode_t>(mode));
+	return {result};
+}
+
+git2pp::commit_tree_entry git2pp::commit_tree_builder::insert(const std::string & filename, const git_oid & id, filemode mode) noexcept {
+	return insert(filename.c_str(), id, mode);
+}
+
+void git2pp::commit_tree_builder::remove(const char * filename) noexcept {
+	git_treebuilder_remove(bld.get(), filename);
+}
+
+void git2pp::commit_tree_builder::remove(const std::string & filename) noexcept {
+	remove(filename.c_str());
+}
+
+git2pp::commit_tree_builder::commit_tree_builder(git2pp::repository & repo) noexcept {
+	git_treebuilder * result;
+	git_treebuilder_new(&result, repo.repo.get(), nullptr);
+	bld = {result, {true}};
+}
+
+git2pp::commit_tree_builder::commit_tree_builder(git2pp::repository & repo, const git2pp::commit_tree & tree) noexcept {
+	git_treebuilder * result;
+	git_treebuilder_new(&result, repo.repo.get(), tree.trr.get());
+	bld = {result, {true}};
+}
+
+
 git2pp::commit_tree::commit_tree(git_tree * r, bool owning) noexcept : trr(r, {owning}) {}
 
 git2pp::commit_tree_entry::commit_tree_entry(git_tree_entry * r, bool owning) noexcept : ent(r, {owning}) {}
 git2pp::commit_tree_entry::commit_tree_entry(const git_tree_entry * r) noexcept : commit_tree_entry(const_cast<git_tree_entry *>(r), false) {}
+
+git2pp::commit_tree_builder::commit_tree_builder(git_treebuilder * r, bool owning) noexcept : bld(r, {owning}) {}

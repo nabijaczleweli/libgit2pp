@@ -27,6 +27,7 @@
 #include "guard.hpp"
 #include "object.hpp"
 #include <git2/oid.h>
+#include <git2/tree.h>
 #include <git2/types.h>
 #include <memory>
 
@@ -39,6 +40,11 @@ namespace git2pp {
 		blob_executable = GIT_FILEMODE_BLOB_EXECUTABLE,
 		link            = GIT_FILEMODE_LINK,
 		commit          = GIT_FILEMODE_COMMIT,
+	};
+
+	enum class tree_walk_mode {
+		pre  = GIT_TREEWALK_PRE,
+		post = GIT_TREEWALK_POST,
 	};
 
 
@@ -54,6 +60,13 @@ namespace git2pp {
 		bool owning;
 
 		void operator()(git_tree_entry * ent) const noexcept;
+	};
+
+	class commit_tree_builder_deleter {
+	public:
+		bool owning;
+
+		void operator()(git_treebuilder * ent) const noexcept;
 	};
 
 
@@ -74,10 +87,13 @@ namespace git2pp {
 		commit_tree_entry at_path(const char * path) const;
 		commit_tree_entry at_path(const std::string & path) const;
 
+		template <class F>
+		void walk(tree_walk_mode mode, F && func) const;
 
 	private:
 		friend class commit;
 		friend class repository;
+		friend class commit_tree_builder;
 
 		commit_tree(git_tree * trr, bool owning = true) noexcept;
 
@@ -104,6 +120,7 @@ namespace git2pp {
 		friend bool operator==(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
 
 		friend class commit_tree;
+		friend class commit_tree_builder;
 
 		commit_tree_entry(git_tree_entry * ent, bool owning = true) noexcept;
 		commit_tree_entry(const git_tree_entry * ent) noexcept;
@@ -116,4 +133,46 @@ namespace git2pp {
 	bool operator<=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
 	bool operator>=(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
 	bool operator==(const commit_tree_entry & lhs, const commit_tree_entry & rhs) noexcept;
+
+	class commit_tree_builder : public guard {
+	public:
+		void clear() noexcept;
+		git_oid write() noexcept;
+		unsigned int size() noexcept;
+
+		commit_tree_entry operator[](const char * filename) noexcept;
+		commit_tree_entry operator[](const std::string & filename) noexcept;
+
+		commit_tree_entry insert(const char * filename, const git_oid & id, filemode mode) noexcept;
+		commit_tree_entry insert(const std::string & filename, const git_oid & id, filemode mode) noexcept;
+
+		void remove(const char * filename) noexcept;
+		void remove(const std::string & filename) noexcept;
+
+		template <class F>
+		void filter(F && func);
+
+		commit_tree_builder(repository & repo) noexcept;
+		commit_tree_builder(repository & repo, const commit_tree & tree) noexcept;
+
+	private:
+		commit_tree_builder(git_treebuilder * bld, bool owning = true) noexcept;
+
+		std::unique_ptr<git_treebuilder, commit_tree_builder_deleter> bld;
+	};
+}
+
+
+template <class F>
+void git2pp::commit_tree::walk(git2pp::tree_walk_mode mode, F && func) const {
+	git_tree_walk(
+	    trr.get(), static_cast<git_treewalk_mode>(mode),
+	    [](const char * root, const git_tree_entry * ent, void * payload) -> int { return (*reinterpret_cast<F *>(payload))(root, commit_tree_entry(ent)); },
+	    &func);
+}
+
+template <class F>
+void git2pp::commit_tree_builder::filter(F && func) {
+	git_treebuilder_filter(bld.get(),
+	                       [](const git_tree_entry * ent, void * payload) -> int { return (*reinterpret_cast<F *>(payload))(commit_tree_entry(ent)); } & func);
 }
