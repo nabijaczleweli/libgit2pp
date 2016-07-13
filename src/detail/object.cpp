@@ -71,7 +71,7 @@ std::string git2pp::object::short_id() const {
 
 	git_object_short_id(&buf, obj.get());
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 git2pp::object_type git2pp::object::type() const noexcept {

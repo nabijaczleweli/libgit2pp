@@ -34,7 +34,7 @@ static inline std::string configuration_path() {
 
 	func(&buf);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 
@@ -137,7 +137,7 @@ std::string git2pp::configuration::path(const char * name) const {
 
 	git_config_get_path(&buf, cfg.get(), name);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::configuration::path(const std::string & name) const {
@@ -150,7 +150,7 @@ std::string git2pp::configuration::string(const char * name) const {
 
 	git_config_get_string_buf(&buf, cfg.get(), name);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::configuration::string(const std::string & name) const {
@@ -309,7 +309,7 @@ std::string git2pp::parse_configuration_path(const char * value) {
 
 	git_config_parse_path(&buf, value);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::parse_configuration_path(const std::string & value) {

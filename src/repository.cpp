@@ -127,7 +127,7 @@ std::string git2pp::repository::message() {
 
 	git_repository_message(&buf, repo.get());
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 void git2pp::repository::remove_message() noexcept {
@@ -357,7 +357,7 @@ std::string git2pp::repository::upstream_branch(const char * name) const {
 
 	git_branch_upstream_name(&buf, repo.get(), name);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::repository::upstream_branch(const std::string & name) const {
@@ -370,7 +370,7 @@ std::string git2pp::repository::branch_remote_name(const char * name) const {
 
 	git_branch_remote_name(&buf, repo.get(), name);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::repository::branch_remote_name(const std::string & name) const {
@@ -383,7 +383,7 @@ std::string git2pp::repository::branch_remote_upstream(const char * name) const 
 
 	git_branch_upstream_remote(&buf, repo.get(), name);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::repository::branch_remote_upstream(const std::string & name) const {
@@ -451,7 +451,7 @@ std::experimental::optional<std::pair<std::string, std::string>> git2pp::reposit
 	if(git_commit_extract_signature(&signature, &data, repo.get(), &id, field))
 		return std::experimental::nullopt;
 	else
-		return {{signature.ptr, data.ptr}};
+		return {{{signature.ptr, signature.size}, {data.ptr, data.size}}};
 }
 
 std::experimental::optional<std::pair<std::string, std::string>> git2pp::repository::extract_commit_signature(git_oid id, const std::string & field) {
@@ -516,5 +516,5 @@ std::string git2pp::discover_repository(const char * start, const std::string & 
 
 	git_repository_discover(&buf, start, across_fs, ceiling_dirs.c_str());
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }

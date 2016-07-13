@@ -125,7 +125,7 @@ std::string git2pp::commit::header_field(const char * field) const {
 
 	git_commit_header_field(&buf, cmt.get(), field);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::commit::header_field(const std::string & field) const {

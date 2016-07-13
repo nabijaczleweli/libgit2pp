@@ -34,7 +34,7 @@ std::string git2pp::message_prettify(const char * message, bool strip_comments, 
 
 	git_message_prettify(&buf, message, strip_comments, comment_char);
 
-	return buf.ptr;
+	return {buf.ptr, buf.size};
 }
 
 std::string git2pp::message_prettify(const std::string & message, bool strip_comments, char comment_char) {
