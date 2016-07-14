@@ -500,6 +500,53 @@ git2pp::blame git2pp::repository::blame_file(const std::string & path, git_blame
 	return blame_file(path.c_str(), opts);
 }
 
+git2pp::blob git2pp::repository::blob_lookup(const git_oid & id) noexcept {
+	git_blob * result;
+	git_blob_lookup(&result, repo.get(), &id);
+	return {result};
+}
+
+git2pp::blob git2pp::repository::blob_lookup(const git_oid & id, std::size_t prefix_len) noexcept {
+	git_blob * result;
+	git_blob_lookup_prefix(&result, repo.get(), &id, prefix_len);
+	return {result};
+}
+
+git_oid git2pp::repository::blob_create_from_working_directory(const char * relative_path) noexcept {
+	git_oid id;
+	git_blob_create_fromworkdir(&id, repo.get(), relative_path);
+	return id;
+}
+
+git_oid git2pp::repository::blob_create_from_working_directory(const std::string & relative_path) noexcept {
+	return blob_create_from_working_directory(relative_path.c_str());
+}
+
+git_oid git2pp::repository::blob_create_from_disk(const char * path) noexcept {
+	git_oid id;
+	git_blob_create_fromdisk(&id, repo.get(), path);
+	return id;
+}
+
+git_oid git2pp::repository::blob_create_from_disk(const std::string & path) noexcept {
+	return blob_create_from_disk(path.c_str());
+}
+
+git_oid git2pp::repository::blob_create_from_buffer(const void * buffer, std::size_t length) noexcept {
+	git_oid id;
+
+	git_blob_create_frombuffer(&id, repo.get(), buffer, length);
+	return id;
+}
+
+git_oid git2pp::repository::blob_create_from_buffer(const std::string & buffer, std::size_t length) noexcept {
+	return blob_create_from_buffer(buffer.c_str(), length);
+}
+
+git_oid git2pp::repository::blob_create_from_buffer(const std::string & buffer) noexcept {
+	return blob_create_from_buffer(buffer.c_str(), buffer.size());
+}
+
 
 git2pp::repository::repository(git_repository * r, bool owning) noexcept : repo(r, {owning}) {}
 

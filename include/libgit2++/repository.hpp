@@ -25,6 +25,7 @@
 
 
 #include "blame.hpp"
+#include "blob.hpp"
 #include "branch.hpp"
 #include "commit.hpp"
 #include "commit_tree.hpp"
@@ -222,6 +223,26 @@ namespace git2pp {
 		blame blame_file(const char * path, git_blame_options opts) noexcept;
 		blame blame_file(const std::string & path, git_blame_options opts) noexcept;
 
+		blob blob_lookup(const git_oid & id) noexcept;
+		blob blob_lookup(const git_oid & id, std::size_t prefix_len) noexcept;
+
+		git_oid blob_create_from_working_directory(const char * relative_path) noexcept;
+		git_oid blob_create_from_working_directory(const std::string & relative_path) noexcept;
+
+		git_oid blob_create_from_disk(const char * path) noexcept;
+		git_oid blob_create_from_disk(const std::string & path) noexcept;
+
+		template <class F>
+		git_oid blob_create_from_chunks(F && func) noexcept;
+		template <class F>
+		git_oid blob_create_from_chunks(F && func, const char * hint_path) noexcept;
+		template <class F>
+		git_oid blob_create_from_chunks(F && func, const std::string & hint_path) noexcept;
+
+		git_oid blob_create_from_buffer(const void * buffer, std::size_t length) noexcept;
+		git_oid blob_create_from_buffer(const std::string & buffer, std::size_t length) noexcept;
+		git_oid blob_create_from_buffer(const std::string & buffer) noexcept;
+
 
 	private:
 		friend class commit_tree_builder;
@@ -232,6 +253,7 @@ namespace git2pp {
 		friend class reference;
 		friend class object;
 		friend class commit;
+		friend class blob;
 
 		repository(git_repository * repo, bool owning = true) noexcept;
 
@@ -288,4 +310,22 @@ template <class... T, class>
 git_oid git2pp::repository::commit_create(const git_signature & author, const git_signature & committer, const std::string & message, const commit_tree & tree,
                                           const char * update_ref, const char * message_encoding, const T &... parents) {
 	return commit_create(author, committer, message.c_str(), tree, update_ref, message_encoding, parents...);
+}
+
+template <class F>
+git_oid git2pp::repository::blob_create_from_chunks(F && func) noexcept {
+	return blob_create_from_chunks(std::forward<F>(func), nullptr);
+}
+
+template <class F>
+git_oid git2pp::repository::blob_create_from_chunks(F && func, const char * hint_path) noexcept {
+	git_oid id;
+	git_blob_create_fromchunks(&id, repo.get(), hint_path,
+	                           [](char * data, std::size_t size, void * payload) -> int { return (*static_cast<F *>(payload))(data, size); }, &func);
+	return id;
+}
+
+template <class F>
+git_oid git2pp::repository::blob_create_from_chunks(F && func, const std::string & hint_path) noexcept {
+	return blob_create_from_chunks(std::forward<F>(func), hint_path.c_str());
 }
