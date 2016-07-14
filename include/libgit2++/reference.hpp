@@ -49,8 +49,8 @@ namespace git2pp {
 		refspec_shorthand = GIT_REF_FORMAT_REFSPEC_SHORTHAND,
 	};
 
-	constexpr normalisation_opts operator&(normalisation_opts lhs, normalisation_opts rhs);
-	constexpr normalisation_opts operator|(normalisation_opts lhs, normalisation_opts rhs);
+	constexpr normalisation_opts operator&(normalisation_opts lhs, normalisation_opts rhs) noexcept;
+	constexpr normalisation_opts operator|(normalisation_opts lhs, normalisation_opts rhs) noexcept;
 
 
 	class reference_deleter {
@@ -121,10 +121,10 @@ namespace git2pp {
 }
 
 
-constexpr git2pp::normalisation_opts git2pp::operator&(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) {
+constexpr git2pp::normalisation_opts git2pp::operator&(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) noexcept {
 	return static_cast<normalisation_opts>(static_cast<unsigned int>(lhs) & static_cast<unsigned int>(rhs));
 }
 
-constexpr git2pp::normalisation_opts git2pp::operator|(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) {
+constexpr git2pp::normalisation_opts git2pp::operator|(git2pp::normalisation_opts lhs, git2pp::normalisation_opts rhs) noexcept {
 	return static_cast<normalisation_opts>(static_cast<unsigned int>(lhs) | static_cast<unsigned int>(rhs));
 }

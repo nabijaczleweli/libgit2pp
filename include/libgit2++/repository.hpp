@@ -24,6 +24,7 @@
 #pragma once
 
 
+#include "blame.hpp"
 #include "branch.hpp"
 #include "commit.hpp"
 #include "commit_tree.hpp"
@@ -217,6 +218,9 @@ namespace git2pp {
 
 		commit_tree tree_lookup(const git_oid & id) noexcept;
 		commit_tree tree_lookup(const git_oid & id, std::size_t prefix_len) noexcept;
+
+		blame blame_file(const char * path, git_blame_options opts) noexcept;
+		blame blame_file(const std::string & path, git_blame_options opts) noexcept;
 
 
 	private:

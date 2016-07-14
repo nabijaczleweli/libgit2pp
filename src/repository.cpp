@@ -25,6 +25,7 @@
 #include "libgit2++/detail/scope.hpp"
 #include "libgit2++/reflog.hpp"
 #include <algorithm>
+#include <git2/blame.h>
 #include <git2/branch.h>
 #include <git2/buffer.h>
 #include <git2/object.h>
@@ -487,6 +488,16 @@ git2pp::commit_tree git2pp::repository::tree_lookup(const git_oid & id, std::siz
 	git_tree * result;
 	git_tree_lookup_prefix(&result, repo.get(), &id, prefix_len);
 	return {result};
+}
+
+git2pp::blame git2pp::repository::blame_file(const char * path, git_blame_options opts) noexcept {
+	git_blame * result;
+	git_blame_file(&result, repo.get(), path, &opts);
+	return {result};
+}
+
+git2pp::blame git2pp::repository::blame_file(const std::string & path, git_blame_options opts) noexcept {
+	return blame_file(path.c_str(), opts);
 }
 
 
